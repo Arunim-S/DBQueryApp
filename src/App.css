@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities{
+    .search1:focus {
+        outline-color: transparent !important;
+      }
+}
