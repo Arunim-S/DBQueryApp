@@ -1,0 +1,37 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '18.x'
+    checkLatest: true
+  displayName: 'Install Node.js 18.x'
+
+- script: npm install
+  displayName: 'Install Dependencies'
+
+- script: npm run build
+  displayName: 'Build the app'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)/dist' #path to build folder
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+# Add a task to create the staticwebapp.config.json file
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      echo '{ "navigationFallback": { "rewrite": "/index.html", "exclude": ["/images/*.{png,jpg,gif}", "/css/*"] } }' > $(Build.ArtifactStagingDirectory)/staticwebapp.config.json
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'container'
+
