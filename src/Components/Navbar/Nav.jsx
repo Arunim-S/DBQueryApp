@@ -1,6 +1,6 @@
 import React from "react";
 
-const Nav = ({ login, username }) => {
+const Nav = ({ login }) => {
   return (
     <nav className="bg-[#363535] text-white py-8">
       <div className="container mx-auto flex justify-between items-center">
@@ -28,7 +28,6 @@ const Nav = ({ login, username }) => {
           </li>
         </ul>
         <ul className="flex gap-8 items-center">
-          <li>{username}</li>
           <li>
             
               <button

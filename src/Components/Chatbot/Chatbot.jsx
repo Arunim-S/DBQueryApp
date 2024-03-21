@@ -1,20 +1,206 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../Sidebar/Sidebar";
+import axios from "axios";
+import { CosmosClient } from "@azure/cosmos";
+import UserData from "./user";
+import Message from "./message";
+import { Puff } from "react-loader-spinner";
+import "../../App.css";
+const chatbot = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [chatHistory, setChatHistory] = useState([]);
+  const [messageInput, setMessageInput] = useState("");
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-const Chatbot = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const connection_string =
+    "AccountEndpoint=https://testafschatdb.documents.azure.com:443/;AccountKey=uq6mIAbz6sAlXEuj3ieWHnnyvu7qRI9SrL1D3zba98r45qDVZum10wwgefDFL6fi13AdBQe36Zd1ACDbxSTvkg==;";
+  const clientCosmos = new CosmosClient(connection_string);
+  const container = clientCosmos.database("Testing_Purpose").container("test");
+  const userName = localStorage.getItem("userName");
 
+  // Toggle sidebar
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const getMessagesFromCosmosDB = async () => {
+    try {
+      setLoading(true);
+      const { resources } = await container.items.readAll().fetchAll();
+      let userExists = false;
+      console.log(resources);
+      resources.forEach((e) => {
+        if (e.userName === userName) {
+          userExists = true;
+          setUserData(e);
+          setChatHistory(e.chats || []);
+          // Exit the loop early since the user is found
+          return;
+        }
+      });
+
+      console.log(userName);
+      if (!userExists && userName) {
+        const timestamp = new Date();
+        const userId = generateRandomUserId();
+        const chats = [];
+        const newUser = new UserData(userId, userName, chats, timestamp);
+        console.log(newUser);
+        await container.items.create(newUser);
+        setChatHistory([]);
+      }
+    } catch (error) {
+      console.error("Error retrieving messages from Cosmos DB:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getMessagesFromCosmosDB();
+  }, []);
+
+  /**
+   *  Generate a random user ID
+   *  @type {Function}
+   * */
+  const generateRandomUserId = () => {
+    return Math.random().toString(36).substr(2, 8);
+  };
+
+  /**
+   * Add message to the state and update the database as well
+   * @type {Function}
+   */
+  const addMessage = async (userName, answer, question, userData) => {
+    try {
+      const timestamp = new Date();
+      const newMessage = new Message(userName, question, answer, timestamp);
+
+      // Update chat history state
+      setChatHistory((prevChatHistory) => [
+        ...prevChatHistory,
+        {
+          question: question,
+          answer: answer,
+        },
+      ]);
+
+      // Update user data state
+      setUserData((prevUserData) => ({
+        ...prevUserData,
+        chats: [...prevUserData.chats, newMessage],
+      }));
+
+      // Update the Cosmos DB with the updated user data
+      await container.items.upsert({
+        ...userData,
+        chats: [...userData.chats, newMessage],
+      });
+    } catch (error) {
+      console.error("Error adding message:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendMessage = async () => {
+    setLoading(true);
+    if (messageInput.trim() === "") return;
+
+    let prompt1 = {
+      role: "system",
+      content:
+        'You are a helpful assistant that provides answers to user\'s queries. When a user asks a question, follow these steps:\n\n1. First, try to generate a response based on the context of your chat history with the user. If you are unable to generate a satisfactory response, then proceed to the next step.\n\n2. Search the Azure Cosmos Database using the execute_query function. You have direct access to the database through this function.\n\nThe Azure Cosmos Database has the following schema:\njson\n{\n    "id": "string",\n    "email": "string",\n    "timestamp": "\'mm/dd/yyyy\' (string ex:\'12/01/2023\')",\n    "questions": [\n        {\n            "userName": "string",\n            "questionType": "string",\n            "userQuestion": "string",\n            "persona": "string"\n        }\n    ]\n}  \n\n\nYou can execute queries such as:\n- "SELECT TOP {top_results} q.userQuestion FROM c JOIN q IN c.questions WHERE c.email = \'{email}\' ORDER BY c.timestamp DESC"\n- "SELECT DISTINCT VALUE q.userName FROM c JOIN q IN c.questions"\n- "SELECT DISTINCT VALUE q.personna FROM c JOIN q IN c.questions", etc.\n\nUse the results from the `execute_query` function to generate a final response to the user\'s query.',
+    };
+    let prompt2 = {
+      role: "user",
+      content: "Who are you and what are your capabilities?",
+    };
+    let prompt3 = {
+      role: "assistant",
+      content:
+        "I am an intelligent digital assistant designed to provide accurate responses to your queries. Here are some of my capabilities:\n\n1. I can execute complex queries on the Azure Cosmos Database, such as retrieving the most recent questions from a specific email, listing distinct user names, or identifying unique personnas.\n\nIn essence, I am capable of providing quick, reliable, and detailed responses to your queries.",
+    };
+
+    // Send message to endpoint
+    let body = [];
+    body.push(prompt1);
+    body.push(prompt2);
+    body.push(prompt3);
+    body.push({ role: "user", content: messageInput.trim() });
+
+    let data = JSON.stringify(body);
+    console.log(data);
+    setMessageInput("");
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "https://cosmosqnav3.azurewebsites.net/api/QnaTriggerV3?code=y2FIr6oIEueI20NC4Neh_9C5XCdEkwcL1ZOGYGV9u5tYAzFuv1zPUQ==",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    try {
+      const response = await axios.request(config);
+      console.log(JSON.stringify(response.data));
+
+      // Append assistant's response to chat history
+
+      // Update Cosmos DB with user's message
+      await addMessage(
+        "user",
+        response.data.content,
+        messageInput.trim(),
+        userData
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  function processText(inputString) {
+    if (!inputString) return;
+    const stringWithBreaks = inputString.replace(/\n/g, "<br>");
+    const stringWithoutUrls = stringWithBreaks.replace(
+      /\((https?:\/\/[^\s]+)\)/g,
+      ""
+    );
+    const stringWithHeadings = stringWithoutUrls.replace(
+      /\*\*(.*?)\*\*/g,
+      '<h1 style="font-size: 1.5rem">$1</h1>'
+    );
+    const boldText = stringWithHeadings.replace(/`([^`]+)`/g, "<b>$1</b>");
+    // console.log(boldText);
+    return boldText;
+  }
+  console.log(userData);
+  console.log(chatHistory);
+
+  const handleDeleteMessage = async (index) => {
+    const updatedMessages = userData.chats;
+    updatedMessages.splice(index, 1);
+
+    setChatHistory(updatedMessages);
+    us
+    setUserData();
+    await container.items.upsert(userData);
+  };
+
   return (
-    <div className="flex w-full h-screen bg-black">
-      <div className={`w-1/5 ${sidebarOpen ? "block" : "hidden"}`}>
-        <Sidebar></Sidebar>
-      </div>
-      <div className={`flex flex-row ${!setSidebarOpen ? "w-4/5" : "w-full"}`}>
-        <div className="items-center flex p-4">
+    <div className="flex flex-col h-screen bg-black">
+      <div className="flex w-full h-full">
+        <div
+          className={`w-1/5 transition-all delay-150 ease-in-out ${
+            sidebarOpen ? "block" : "hidden"
+          }`}
+        >
+          <Sidebar />
+        </div>
+        <div className="p-4 items-center flex h-full">
           <button
             className="text-white text-center mt-4 focus:outline-none"
             onClick={toggleSidebar}
@@ -22,33 +208,104 @@ const Chatbot = () => {
             {sidebarOpen ? "<" : ">"}
           </button>
         </div>
-        <div className="w-full h-full flex flex-col justify-between py-12">
-          <div className="">
-            <h1 className="text-white text-center text-[3rem]">DB Query App</h1>
+        <div className="flex flex-col mx-auto w-full chats-scroll">
+          <div className="flex flex-col justify-center">
+            <div className="text-white text-center text-[3rem] mb-4 p-[2rem]">
+              DB Query App
+            </div>
           </div>
-          <div className="w-3/5 mx-auto h-max flex gap-2">
-            <input
-              type="text"
-              id="search-container"
-              className="form-input relative bg-gradient-to-br from-blue-500 to-indigo-800 mt-1 block w-full outline-none rounded-[1rem] p-3 text-white transition-all ease-in-out"
-              placeholder="Search"
-            />
-            <div className="flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="2rem"
-              height="2rem"
-              viewBox="0 0 24 24"
-              fill="#fff"
-            >
-              <path
-                d="M11.5003 12H5.41872M5.24634 12.7972L4.24158 15.7986C3.69128 17.4424 3.41613 18.2643 3.61359 18.7704C3.78506 19.21 4.15335 19.5432 4.6078 19.6701C5.13111 19.8161 5.92151 19.4604 7.50231 18.7491L17.6367 14.1886C19.1797 13.4942 19.9512 13.1471 20.1896 12.6648C20.3968 12.2458 20.3968 11.7541 20.1896 11.3351C19.9512 10.8529 19.1797 10.5057 17.6367 9.81135L7.48483 5.24303C5.90879 4.53382 5.12078 4.17921 4.59799 4.32468C4.14397 4.45101 3.77572 4.78336 3.60365 5.22209C3.40551 5.72728 3.67772 6.54741 4.22215 8.18767L5.24829 11.2793C5.34179 11.561 5.38855 11.7019 5.407 11.8459C5.42338 11.9738 5.42321 12.1032 5.40651 12.231C5.38768 12.375 5.34057 12.5157 5.24634 12.7972Z"
-                stroke="#000000"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
+          <div className="flex flex-col h-full w-full overflow-y-auto gap-2 p-4">
+            {chatHistory.map((message, index) => (
+              <div
+                className="border-2 flex rounded-xl p-4 w-3/4 mx-auto"
+                key={index}
+              >
+                
+                <div className="flex flex-col w-full">
+                <div className="text-white text-left mb-2">
+                  Query: {message.question}
+                </div>
+                <div
+                  className=" text-white"
+                  dangerouslySetInnerHTML={{
+                    __html: processText(message.answer),
+                  }}
+                />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    className="text-center"
+                    onClick={() => handleDeleteMessage(index)}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      xmlns:xlink="http://www.w3.org/1999/xlink"
+                      fill="#fff"
+                      version="1.1"
+                      id="Capa_1"
+                      width="24px"
+                      height="24px"
+                      viewBox="0 0 482.428 482.429"
+                      xml:space="preserve"
+                    >
+                      <g>
+                        <g>
+                          <path d="M381.163,57.799h-75.094C302.323,25.316,274.686,0,241.214,0c-33.471,0-61.104,25.315-64.85,57.799h-75.098    c-30.39,0-55.111,24.728-55.111,55.117v2.828c0,23.223,14.46,43.1,34.83,51.199v260.369c0,30.39,24.724,55.117,55.112,55.117    h210.236c30.389,0,55.111-24.729,55.111-55.117V166.944c20.369-8.1,34.83-27.977,34.83-51.199v-2.828    C436.274,82.527,411.551,57.799,381.163,57.799z M241.214,26.139c19.037,0,34.927,13.645,38.443,31.66h-76.879    C206.293,39.783,222.184,26.139,241.214,26.139z M375.305,427.312c0,15.978-13,28.979-28.973,28.979H136.096    c-15.973,0-28.973-13.002-28.973-28.979V170.861h268.182V427.312z M410.135,115.744c0,15.978-13,28.979-28.973,28.979H101.266    c-15.973,0-28.973-13.001-28.973-28.979v-2.828c0-15.978,13-28.979,28.973-28.979h279.897c15.973,0,28.973,13.001,28.973,28.979    V115.744z" />
+                          <path d="M171.144,422.863c7.218,0,13.069-5.853,13.069-13.068V262.641c0-7.216-5.852-13.07-13.069-13.07    c-7.217,0-13.069,5.854-13.069,13.07v147.154C158.074,417.012,163.926,422.863,171.144,422.863z" />
+                          <path d="M241.214,422.863c7.218,0,13.07-5.853,13.07-13.068V262.641c0-7.216-5.854-13.07-13.07-13.07    c-7.217,0-13.069,5.854-13.069,13.07v147.154C228.145,417.012,233.996,422.863,241.214,422.863z" />
+                          <path d="M311.284,422.863c7.217,0,13.068-5.853,13.068-13.068V262.641c0-7.216-5.852-13.07-13.068-13.07    c-7.219,0-13.07,5.854-13.07,13.07v147.154C298.213,417.012,304.067,422.863,311.284,422.863z" />
+                        </g>
+                      </g>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="w-3/4 mx-auto">
+            <div className="mx-auto flex items-center gap-2 p-8">
+              <div className="relative flex-grow">
+                <textarea
+                  type="text"
+                  id="search-container"
+                  className="form-input bg-gradient-to-br from-blue-500 to-indigo-800 mt-1 block w-full outline-none rounded-[1rem] pl-4 pr-14 py-3 text-white transition-all ease-in-out"
+                  placeholder="Search"
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                />
+                <button
+                  className="absolute right-0 top-0 h-full flex items-center justify-center px-4"
+                  onClick={sendMessage}
+                >
+                  {loading ? (
+                    <Puff
+                      visible={true}
+                      height="40"
+                      width="40"
+                      color="#fff"
+                      ariaLabel="puff-loading"
+                      wrapperStyle={{}}
+                      wrapperClass=""
+                    />
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="2rem"
+                      height="2rem"
+                      viewBox="0 0 24 24"
+                      fill="#fff"
+                    >
+                      <path
+                        d="M11.5003 12H5.41872M5.24634 12.7972L4.24158 15.7986C3.69128 17.4424 3.41613 18.2643 3.61359 18.7704C3.78506 19.21 4.15335 19.5432 4.6078 19.6701C5.13111 19.8161 5.92151 19.4604 7.50231 18.7491L17.6367 14.1886C19.1797 13.4942 19.9512 13.1471 20.1896 12.6648C20.3968 12.2458 20.3968 11.7541 20.1896 11.3351C19.9512 10.8529 19.1797 10.5057 17.6367 9.81135L7.48483 5.24303C5.90879 4.53382 5.12078 4.17921 4.59799 4.32468C4.14397 4.45101 3.77572 4.78336 3.60365 5.22209C3.40551 5.72728 3.67772 6.54741 4.22215 8.18767L5.24829 11.2793C5.34179 11.561 5.38855 11.7019 5.407 11.8459C5.42338 11.9738 5.42321 12.1032 5.40651 12.231C5.38768 12.375 5.34057 12.5157 5.24634 12.7972Z"
+                        stroke="#000000"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -57,4 +314,4 @@ const Chatbot = () => {
   );
 };
 
-export default Chatbot;
+export default chatbot;

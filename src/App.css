@@ -7,3 +7,55 @@
         outline-color: transparent !important;
       }
 }
+
+.code-editor textarea::-webkit-scrollbar {
+  width: 12px; /* Set the width of the scrollbar */
+}
+
+/* Track */
+.code-editor textarea::-webkit-scrollbar-track {
+  background: #555; /* Set the background color of the track */
+}
+
+/* Handle */
+.code-editor textarea::-webkit-scrollbar-thumb {
+  background: #888; /* Set the color of the handle */
+  border-radius: 6px; /* Round the corners of the handle */
+}
+
+/* Handle on hover */
+.code-editor textarea::-webkit-scrollbar-thumb:hover {
+  background: #464040; /* Set the color of the handle on hover */
+}
+
+.chats-scroll div::-webkit-scrollbar {
+  width: 12px; /* Set the width of the scrollbar */
+}
+
+/* Track */
+.chats-scroll div::-webkit-scrollbar-track {
+  background: #555; /* Set the background color of the track */
+}
+
+/* Handle */
+.chats-scroll div::-webkit-scrollbar-thumb {
+  background: #888; /* Set the color of the handle */
+  border-radius: 6px; /* Round the corners of the handle */
+}
+
+/* Handle on hover */
+.chats-scroll div::-webkit-scrollbar-thumb:hover {
+  background: #464040; /* Set the color of the handle on hover */
+}
+
+.sidebar-closed {
+  width: 0;
+  overflow: hidden;
+  transition: width 0.5s ease;
+}
+
+.sidebar-open {
+  width: 100%;
+  overflow: visible;
+  transition: width 0.5s ease;
+}

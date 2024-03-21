@@ -31,6 +31,9 @@ const Connector = () => {
   const handleStep2ButtonClick = () => {
     setShowStep2(true);
   };
+  const handleStep2Back = () => {
+    setShowStep2(false);
+  };
 
   return (
     <div className="flex flex-row w-full min-h-screen bg-black relative">
@@ -43,14 +46,14 @@ const Connector = () => {
         <button className="text-white p-4" onClick={handleToggleSidebar}>
           {sidebarVisible ? "<" : ">"}
         </button>
-        <div className="w-full flex flex-col items-center justify-center py-12 relative">
+        <div className="w-full flex h-full flex-col items-center justify-center py-12 relative px-8">
           {!showStep2 && (
             <h1 className="text-white text-3xl font-bold mb-8">
               Connect to Azure Database
             </h1>
           )}
           {!showStep2 && (
-            <div className="bg-[#0C2C54] w-3/4 h-3/4 gap-[1rem] flex flex-col rounded-lg p-8 relative">
+            <div className="bg-[#0C2C54] w-3/4 h-full gap-[1rem] flex flex-col rounded-lg p-8 mx-auto relative">
               <div>
                 <p className="text-[#B0B0B0] text-lg font-bold mb-4">Step 1</p>
                 <p className="text-[#B0B0B0] text-lg mb-6">
@@ -98,7 +101,9 @@ const Connector = () => {
               </div>
             </div>
           )}
-          {showStep2 && <Step2 />}
+          {showStep2 && (
+            <Step2 onBack={handleStep2Back} />
+          )}
         </div>
       </div>
     </div>
