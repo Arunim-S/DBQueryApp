@@ -13,7 +13,7 @@ import Connector from "./Components/Connectors/Connector";
 import { PublicClientApplication } from "@azure/msal-browser";
 import Login from "./Components/Login_Page/Login";
 import Auth from "./Components/Login_Page/auth";
-
+import Account from "./Components/Account/Account";
 /**
  * Microsoft Authentication Configuration.
  * @typedef {Object} MsalConfig
@@ -84,15 +84,20 @@ function App() {
       <Route
         path="/chat"
         element={
-          authenticated ? <Chatbot user={user}/> : <Navigate to={"/login"}></Navigate>
+          authenticated ? <Chatbot user={user}/> : <Navigate to={"/"}></Navigate>
         }
       />
       <Route
         path="/connector"
         element={
-          authenticated ? <Connector user={user}/> : <Navigate to={"/login"}></Navigate>
+          authenticated ? <Connector user={user}/> : <Navigate to={"/"}></Navigate>
         }
       />
+      <Route
+        path="/account"
+        element={
+          authenticated ? <Account user={user} logout={logout}/> : <Navigate to={"/"}></Navigate>
+        }/>
       <Route
         path="/"
         element={<Dashboard user={user} login={login} logout={logout} />}

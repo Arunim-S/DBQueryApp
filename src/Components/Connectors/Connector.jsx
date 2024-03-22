@@ -3,7 +3,7 @@ import Sidebar from "../Sidebar/Sidebar";
 import Step2 from "./Step2";
 import NextIcon from "../../row1_1_.png";
 
-const Connector = () => {
+const Connector = ({user}) => {
   const [endpoint, setEndpoint] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [sidebarVisible, setSidebarVisible] = useState(true);
@@ -39,7 +39,7 @@ const Connector = () => {
     <div className="flex flex-row w-full min-h-screen bg-black relative">
       {sidebarVisible && (
         <div className="w-1/5">
-          <Sidebar />
+          <Sidebar user={user} />
         </div>
       )}
       <div className={`flex ${sidebarVisible ? "w-4/5" : "w-full"}`}>

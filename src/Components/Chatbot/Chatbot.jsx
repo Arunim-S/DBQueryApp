@@ -19,7 +19,8 @@ const chatbot = ({user}) => {
     "AccountEndpoint=https://testafschatdb.documents.azure.com:443/;AccountKey=uq6mIAbz6sAlXEuj3ieWHnnyvu7qRI9SrL1D3zba98r45qDVZum10wwgefDFL6fi13AdBQe36Zd1ACDbxSTvkg==;";
   const clientCosmos = new CosmosClient(connection_string);
   const container = clientCosmos.database("Testing_Purpose").container("test");
-  const userName = localStorage.getItem("userName");
+  const userName = user?.name;
+  console.log(userName)
 
   /**
    * Toggles the sidebar open/close.
@@ -37,9 +38,9 @@ const chatbot = ({user}) => {
       let userExists = false;
       resources.forEach((e) => {
         if (e.userName === userName) {
+          setChatHistory(e.chats);
           userExists = true;
           setUserData(e);
-          setChatHistory(e.chats || []);
           // Exit the loop early since the user is found
           return;
         }
@@ -62,7 +63,7 @@ const chatbot = ({user}) => {
 
   useEffect(() => {
     getMessagesFromCosmosDB();
-  }, []);
+  }, [user]);
 
   /**
    * Generates a random user ID.
