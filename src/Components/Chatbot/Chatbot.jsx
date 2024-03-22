@@ -5,14 +5,16 @@ import { CosmosClient } from "@azure/cosmos";
 import UserData from "./user";
 import Message from "./message";
 import { Puff } from "react-loader-spinner";
+import {LineWave} from "react-loader-spinner";
 import "../../App.css";
-const chatbot = () => {
+const chatbot = ({user}) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [chatHistory, setChatHistory] = useState([]);
   const [messageInput, setMessageInput] = useState("");
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [loadingMessagesDelete, setLoadingMessagesDelete] = useState(false);
   const connection_string =
     "AccountEndpoint=https://testafschatdb.documents.azure.com:443/;AccountKey=uq6mIAbz6sAlXEuj3ieWHnnyvu7qRI9SrL1D3zba98r45qDVZum10wwgefDFL6fi13AdBQe36Zd1ACDbxSTvkg==;";
   const clientCosmos = new CosmosClient(connection_string);
@@ -30,7 +32,7 @@ const chatbot = () => {
    */
   const getMessagesFromCosmosDB = async () => {
     try {
-      setLoading(true);
+      setLoadingMessages(true);
       const { resources } = await container.items.readAll().fetchAll();
       let userExists = false;
       resources.forEach((e) => {
@@ -54,7 +56,7 @@ const chatbot = () => {
     } catch (error) {
       console.error("Error retrieving messages from Cosmos DB:", error);
     } finally {
-      setLoading(false);
+      setLoadingMessages(false);
     }
   };
 
@@ -168,11 +170,15 @@ const chatbot = () => {
   }
 
   const handleDeleteMessage = async (index) => {
-    const updatedMessages = [...userData.chats]; // Create a copy of the array
-    updatedMessages.splice(index, 1);
-    setChatHistory(updatedMessages); // Update the state with the copy
-    userData.chats = updatedMessages; // Update the user data
-    await container.items.upsert(userData); // Update the database
+    setLoadingMessagesDelete(true);
+    setTimeout(async ()=>{
+      const updatedMessages = [...userData.chats]; // Create a copy of the array
+      updatedMessages.splice(index, 1);
+      setChatHistory(updatedMessages); // Update the state with the copy
+      userData.chats = updatedMessages; // Update the user data
+      await container.items.upsert(userData); // Update the database
+      setLoadingMessagesDelete(false);
+    }, 2000)
   };
 
   return (
@@ -183,7 +189,7 @@ const chatbot = () => {
             sidebarOpen ? "block" : "hidden"
           }`}
         >
-          <Sidebar />
+          <Sidebar user={user}/>
         </div>
         <div className="p-4 items-center flex h-full">
           <button
@@ -193,13 +199,8 @@ const chatbot = () => {
             {sidebarOpen ? "<" : ">"}
           </button>
         </div>
-        <div className="flex flex-col mx-auto w-full chats-scroll">
-          <div className="flex flex-col justify-center">
-            <div className="text-white text-center text-[3rem] mb-4 p-[2rem]">
-              DB Query App
-            </div>
-          </div>
-          <div className="flex flex-col h-full w-full overflow-y-auto gap-2 p-4">
+        <div className="flex flex-col mx-auto w-full chats-scroll pt-16">
+         {!loadingMessages? <div className="flex flex-col h-full w-full overflow-y-auto gap-2 p-4">
             {chatHistory.map((message, index) => (
               <div
                 className="flex rounded-xl bg-gray-600 gap-4 p-4 w-3/4 mx-auto"
@@ -221,6 +222,7 @@ const chatbot = () => {
                   </div>
                 </div>
                 <div className="flex justify-end">
+                  {!loadingMessagesDelete?
                   <button
                     className="text-center"
                     onClick={() => handleDeleteMessage(index)}
@@ -245,11 +247,26 @@ const chatbot = () => {
                         </g>
                       </g>
                     </svg>
-                  </button>
+                  </button>:
+                  <LineWave
+                  visible={true}
+                  height="100"
+                  width="100"
+                  color="#fff"
+                  ariaLabel="line-wave-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                  firstLineColor=""
+                  middleLineColor=""
+                  lastLineColor=""
+                  />
+                  }
                 </div>
               </div>
             ))}
-          </div>
+          </div>:
+          <div className="text-white text-center flex w-full h-full items-center justify-center">Loading Messages ...</div>
+          }
           <div className="w-3/4 mx-auto">
             <div className="mx-auto flex items-center gap-2 p-8">
               <div className="relative flex-grow">

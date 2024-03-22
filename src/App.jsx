@@ -84,13 +84,13 @@ function App() {
       <Route
         path="/chat"
         element={
-          authenticated ? <Chatbot /> : <Navigate to={"/login"}></Navigate>
+          authenticated ? <Chatbot user={user}/> : <Navigate to={"/login"}></Navigate>
         }
       />
       <Route
         path="/connector"
         element={
-          authenticated ? <Connector /> : <Navigate to={"/login"}></Navigate>
+          authenticated ? <Connector user={user}/> : <Navigate to={"/login"}></Navigate>
         }
       />
       <Route
