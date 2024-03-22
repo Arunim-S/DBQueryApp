@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../../App.css";
-import { Navigate } from "react-router-dom";
 import Login from "../Login_Page/Login";
-import Auth from "../Login_Page/auth"
-const Dashboard = ({ user, logout }) => {
-
-  
-
+const Dashboard = ({ user, login, logout }) => {
   const databaseTitlesWithTotalData = [
     { title: "Users", totalData: 1000 },
     { title: "Departments", totalData: 50 },
@@ -15,6 +10,8 @@ const Dashboard = ({ user, logout }) => {
     { title: "Permissions", totalData: 200 },
   ];
   return(
+    <>
+    {user.name?(
     <div className="flex w-full h-screen">
       <div className="w-full bg-black py-12">
         <div className="flex justify-end items-end px-8">
@@ -120,6 +117,9 @@ const Dashboard = ({ user, logout }) => {
         </div>
       </div>
     </div>
+    ) : (<Login login={login}></Login>)
+    }
+    </>
   )
 };
 

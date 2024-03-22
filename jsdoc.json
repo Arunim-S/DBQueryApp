@@ -1,0 +1,17 @@
+{
+    "source": {
+      "include": ["src"],
+      "includePattern": ".+\\.jsx?$"
+    },
+    "plugins": [],
+    "recurseDepth": 10,
+    "opts": {
+      "recurse": true,
+      "destination": "docs/"
+    },
+    "sourceType": "module",
+    "babel": {
+      "extensions": ["js", "jsx"]
+    }
+  }
+  

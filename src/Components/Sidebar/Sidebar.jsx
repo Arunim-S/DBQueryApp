@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom"; // Import NavLink for routing
 import "../../App.css";
 
-const Sidebar = () => {
+const Sidebar = ({userName}) => {
   const [openCount, setOpenCount] = useState(0);
   const [container, setContainer] = useState(0);
   const [feature, setFeature] = useState(null);
@@ -114,7 +114,7 @@ const Sidebar = () => {
           className="w-8 h-8 rounded-full"
           alt="User avatar"
         ></img>
-        <p className="text-[#B0B0B0] text-xl">Arunim Singhal</p>
+        <p className="text-[#B0B0B0] text-xl">{userName}</p>
       </div>
     </div>
   );
