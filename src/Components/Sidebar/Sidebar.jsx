@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom"; // Import NavLink for routing
 import "../../App.css";
 
-const Sidebar = ({ user }) => {
+const Sidebar = ({ user, setSidebarOpen }) => {
   const [openCount, setOpenCount] = useState(0);
   const [container, setContainer] = useState(0);
   const [feature, setFeature] = useState(null);
@@ -66,16 +66,54 @@ const Sidebar = ({ user }) => {
 
   return (
     <div
-      className={`w-full relative bg-[#201E1E] h-screen flex flex-col text-white px-10 ${openCount ? "sidebar-open" : "sidebar-closed"}`}
+      className={`w-full py-8 bg-[#201E1E] justify-between h-full flex flex-col overflow-y-auto text-white px-4 ${openCount ? "sidebar-open" : "sidebar-closed"}`}
     >
-      {/* heading */}
-      <h1 className="text-white font-semibold text-left text-3xl pt-12">
-        DB Query App
-      </h1>
+      {/* HEADING AND CLOSE BUTTON */}
+      <div className="flex w-full justify-between">
+        {/* heading */}
+        <h1 className="text-white font-semibold text-left text-3xl">
+          DB Query App
+        </h1>
+        <button
+          onClick={(e) => {
+            setSidebarOpen(false);
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="2rem"
+            height="2rem"
+            viewBox="0 0 24 24"
+            fill="#fff"
+          >
+            <path
+              d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z"
+              stroke="#292D32"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M9.16998 14.83L14.83 9.17004"
+              stroke="#292D32"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M14.83 14.83L9.16998 9.17004"
+              stroke="#292D32"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
       {/* features list */}
-      <div className="flex flex-col w-full">
+      <div className="flex flex-col w-full py-4">
         <div className="w-full flex flex-col gap-4">
-          <h1 className="mt-12 text-xl text-[#5D80C2] font-bold">Features</h1>
+          <h1 className="text-xl text-[#5D80C2] font-bold">Features</h1>
           {featuresList.map((c, index) => (
             <NavLink
               to={c.route}
@@ -93,11 +131,9 @@ const Sidebar = ({ user }) => {
         </div>
       </div>
       {/* Containers list */}
-      <div className="flex flex-col w-full h-[60%]">
+      <div className="flex flex-col w-full py-4">
         <div className="w-full flex flex-col gap-4">
-          <h1 className="mt-12 text-xl text-[#5D80C2] font-bold">
-            Your Containers
-          </h1>
+          <h1 className="text-xl text-[#5D80C2] font-bold">Your Containers</h1>
           {containersList.map((c, index) => (
             <button
               onClick={() => handleContainer(index)}
@@ -112,7 +148,10 @@ const Sidebar = ({ user }) => {
         </div>
       </div>
       {/* account name */}
-      <div className="absolute bottom-12 w-4/5 items-center justify-center px-2 flex h-12 border-2 rounded-3xl border-[#B0B0B0] gap-2">
+      <a
+        className="items-center justify-center px-2 flex h-12 border-2 rounded-3xl border-[#B0B0B0] gap-2"
+        href="/account"
+      >
         <svg
           width="1.5rem"
           height="1.5rem"
@@ -131,7 +170,7 @@ const Sidebar = ({ user }) => {
           />
         </svg>
         <p className="text-[#B0B0B0] text-xl">{user?.name}</p>
-      </div>
+      </a>
     </div>
   );
 };
