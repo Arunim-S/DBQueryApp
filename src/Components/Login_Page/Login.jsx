@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Nav from "../Navbar/Nav";
-const Login = ({ login }) => {
+const Login = ({ login, instance }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -24,8 +24,21 @@ const Login = ({ login }) => {
  * Submit handler function for handling form submission.
  * @param {Object} e - The event object.
  */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      console.log(instance)
+      const result = await instance.acquireTokenByUsernamePassword({
+        scopes: ['openid', 'profile', 'offline_access'],
+        email,
+        password,
+      });
+
+      // Handle successful authentication
+      console.log('Token acquired:', result);
+    } catch (error) {
+      console.error('Login failed: ', error);
+    }
   };
 
   return (

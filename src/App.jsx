@@ -100,7 +100,7 @@ function App() {
         }/>
       <Route
         path="/"
-        element={<Dashboard user={user} login={login} logout={logout} />}
+        element={<Dashboard instance={pca} user={user} login={login} logout={logout} />}
       />
     </Routes>
   );
