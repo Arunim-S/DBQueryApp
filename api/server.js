@@ -4,15 +4,18 @@ import { CosmosClient } from '@azure/cosmos';
 import bcrypt from 'bcrypt';
 import cors from "cors"
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = 3001;
 // Initialize Cosmos DB client
 const connection_string =
-  "AccountEndpoint=https://testafschatdb.documents.azure.com:443/;AccountKey=uq6mIAbz6sAlXEuj3ieWHnnyvu7qRI9SrL1D3zba98r45qDVZum10wwgefDFL6fi13AdBQe36Zd1ACDbxSTvkg==;";
+  "AccountEndpoint=https://text2nosqltest.documents.azure.com:443/;AccountKey=0OehkkPnTLaUxMSKfJMFYN9d5HkZvtuWv3yTO4mKiTqxnBddRKjFVcqHNTNjf4rWfXuRnL67GxSPACDbFi85Rg==;";
+// const URI = "https://testafschatdb.documents.azure.com"
+// const token = "uq6mIAbz6sAlXEuj3ieWHnnyvu7qRI9SrL1D3zba98r45qDVZum10wwgefDFL6fi13AdBQe36Zd1ACDbxSTvkg=="
 const clientCosmos = new CosmosClient(connection_string);
 const database = clientCosmos.database("Testing_Purpose");
 
 app.use(bodyParser.json());
 app.use(cors());
+// console.log(database.containers())
 
 // Function to list all databases
 async function listDatabases(req, res) {
@@ -31,18 +34,24 @@ app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const { resources } = await container.items.readAll().fetchAll();
+    const { resources } = await clientCosmos.database('Testing_Purpose').container('test').items.readAll().fetchAll();
     if (resources.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    const user = resources.find((e) => e.userName === username);
-
+    let hash = "";
+    let userName = ""
+    const user = resources.map((e) => {
+      if(e.userName === username){
+        userName = e.userName;
+        hash = e.hash;
+      }});
+    
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     // let pass = "123456789";
     // Compare hashed password
-    const passwordMatch = await bcrypt.compare(password, pass);
+    const passwordMatch = await bcrypt.compare(password, hash);
     if (!passwordMatch) {
       return res.status(401).json({ error: 'Invalid password' });
     }
@@ -89,9 +98,10 @@ app.delete('/api/deletedb', async (req, res) => {
 app.get('/api/listcontainers', async (req, res) => {
   try {
     const {name} = req.body;
+    console.log(name)
     const database_cl = clientCosmos.database(name);
-    const { resources_cl } = await database_cl.containers.readAll().fetchAll();
-    const containerIds = resources_cl.map(container => container.id);
+    const { resources } = await database_cl.containers.readAll().fetchAll();
+    const containerIds = resources.map(container => container.id);
     res.status(200).json({ containers: containerIds });
   } catch (error) {
     console.error('Failed to list containers:', error);
