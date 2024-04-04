@@ -28,7 +28,7 @@ const Dashboard = ({ instance, user, login, logout }) => {
   }, []);
   const handleCreateDB = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/createdb', {
+      const response = await fetch('https://text2nosqlserver.azurewebsites.net/api/createdb', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -51,7 +51,7 @@ const Dashboard = ({ instance, user, login, logout }) => {
 
   const handleDeleteDB = async (id) => {
     try {
-      const response = await fetch('http://localhost:3001/api/deletedb', {
+      const response = await fetch('https://text2nosqlserver.azurewebsites.net/api/deletedb', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
