@@ -4,7 +4,7 @@ import axios from "axios";
 import { CosmosClient } from "@azure/cosmos";
 import UserData from "./user";
 import Message from "./message";
-import { Puff } from "react-loader-spinner";
+import {ClipLoader, SyncLoader} from "react-spinners"
 import { LineWave } from "react-loader-spinner";
 import "../../App.css";
 import Dropdown from "../Dropdown/Dropdown";
@@ -115,7 +115,9 @@ const chatbot = ({ user }) => {
     } catch (error) {
       console.error("Error adding message:", error);
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
     }
   };
 
@@ -335,7 +337,8 @@ const chatbot = ({ user }) => {
             </div>
           ) : (
             <div className="text-white text-center flex w-full h-full items-center justify-center">
-              Loading Messages ...
+              
+<SyncLoader color="#fff" />
             </div>
           )}
           <div className="w-3/4 mx-auto">
@@ -354,15 +357,7 @@ const chatbot = ({ user }) => {
                   onClick={sendMessage}
                 >
                   {loading ? (
-                    <Puff
-                      visible={true}
-                      height="40"
-                      width="40"
-                      color="#fff"
-                      ariaLabel="puff-loading"
-                      wrapperStyle={{}}
-                      wrapperClass=""
-                    />
+                    <ClipLoader color="#fff" />
                   ) : (
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

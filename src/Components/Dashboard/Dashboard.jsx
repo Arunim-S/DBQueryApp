@@ -4,7 +4,7 @@ import Login from "../Login_Page/Login";
 import axios from 'axios';
 import fetchContainers from "../../fetchContainers";
 import fetchDatabase from "../../fetchDatabases";
-import {BallTriangle} from "react-loader-spinner" 
+import {ClipLoader} from "react-spinners"
 const Dashboard = ({ instance, user, login, logout }) => {
   const [containers, setContainers] = useState([]);
   const [databases, setDatabases] = useState([]);
@@ -74,21 +74,13 @@ const Dashboard = ({ instance, user, login, logout }) => {
   };
   return (
     <>
-    {loading && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <BallTriangle
-          height={100}
-          width={100}
-          radius={5}
-          color="#fff"
-          ariaLabel="ball-triangle-loading"
-          wrapperStyle={{}}
-          wrapperClass=""
-          visible={true}
-          />
-        </div>
-      )}
       {user.name ?
+      <>
+          {loading && (
+            <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
+              <ClipLoader color="#fff" />
+            </div>
+          )}
       <div className="w-full h-full relative">
         <div className="flex w-full h-screen">
           <div className="flex  flex-col w-[18rem] pt-8 pl-4 bg-[#201E1E] h-full justify-between overflow-y-auto">
@@ -237,6 +229,7 @@ const Dashboard = ({ instance, user, login, logout }) => {
           </div>
         </div>
       </div>
+      </>
        : 
       (<Login instance={instance} login={login}></Login>)
     }
