@@ -7,20 +7,40 @@ import Message from "./message";
 import { Puff } from "react-loader-spinner";
 import { LineWave } from "react-loader-spinner";
 import "../../App.css";
+import Dropdown from "../Dropdown/Dropdown";
+import fetchContainers from "../../fetchContainers";
+import fetchDatabase from "../../fetchDatabases";
 const chatbot = ({ user }) => {
   let [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [messageInput, setMessageInput] = useState("");
+  const [containers, setContainers] = useState([]);
+  const [databases, setDatabases] = useState([]);
+  const [selector, setSelector] = useState(0);
+  const [selectorC, setSelectorC] = useState(0);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [loadingMessagesDelete, setLoadingMessagesDelete] = useState(false);
   const connection_string =
-    "AccountEndpoint=https://testafschatdb.documents.azure.com:443/;AccountKey=uq6mIAbz6sAlXEuj3ieWHnnyvu7qRI9SrL1D3zba98r45qDVZum10wwgefDFL6fi13AdBQe36Zd1ACDbxSTvkg==;";
+    "AccountEndpoint=https://testafschatdb.documents.azure.com:443/;AccountKey=tzam6UyAkfzzWCyzg4MQYVSjLt5C8J6fprjgeQNBk21T4cKzTusYIF9YBywPWhEGqKKTxBcbBck5ACDbV7X85g==;";
   const clientCosmos = new CosmosClient(connection_string);
   const container = clientCosmos.database("Testing_Purpose").container("test");
   const userName = user?.name;
-  console.log(userName);
+  useEffect(() => {
+    fetchContainers(databases, selector, setContainers);
+  }, [databases, selector]);
+
+  useEffect(() => {
+    fetchDatabase(setDatabases);
+  }, []);
+
+  databases?.map((e, index)=>{
+    if(e==selector)
+    {
+      setSelector(index)
+    }
+  })
 
   /**
    * Toggles the sidebar open/close.
@@ -130,7 +150,7 @@ const chatbot = ({ user }) => {
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: "https://cosmosqnav3.azurewebsites.net/api/QnaTriggerV3?code=y2FIr6oIEueI20NC4Neh_9C5XCdEkwcL1ZOGYGV9u5tYAzFuv1zPUQ==",
+      url: "https://db-query.azurewebsites.net",
       headers: {
         "Content-Type": "application/json",
       },
@@ -194,14 +214,15 @@ const chatbot = ({ user }) => {
   //     window.removeEventListener("resize", handleResize);
   //   };
   // }, []);
-  console.log(sidebarOpen);
+
+  console.log(containers)
   return (
     <div className="flex flex-col h-screen bg-black">
       <div className="flex w-full h-full">
         {sidebarOpen ? (
-          <div className="w-1/5 transition-all ease-in-out delay-500">
-            <Sidebar user={user} setSidebarOpen={setSidebarOpen} />
-            </div>
+          <div className="w-1/5">
+            <Sidebar user={user} setSidebarOpen={setSidebarOpen} containersList={containers}/>
+          </div>
         ) : (
           <div className="p-8">
             <button onClick={(e) => setSidebarOpen(true)}>
@@ -234,7 +255,17 @@ const chatbot = ({ user }) => {
             </button>
           </div>
         )}
-        <div className="flex flex-col mx-auto w-4/5 chats-scroll pt-16">
+        <div className="flex flex-col mx-auto w-4/5 chats-scroll pt-4">
+          <div className="flex justify-center gap-4 p-4">
+            <div className="gap-4 flex">
+              <Dropdown options={databases} setSelector={setSelector} type={"Database"}></Dropdown>
+            </div>
+
+            <div className="gap-4 flex">
+              <Dropdown options={containers} setSelector={setSelectorC} type={"Container"}></Dropdown>
+            </div>
+          </div>
+
           {!loadingMessages ? (
             <div className="flex flex-col h-full w-full overflow-y-auto gap-2 p-4">
               {chatHistory.map((message, index) => (

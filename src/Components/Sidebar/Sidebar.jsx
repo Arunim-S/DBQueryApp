@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom"; // Import NavLink for routing
 import "../../App.css";
 
-const Sidebar = ({ user, setSidebarOpen }) => {
+const Sidebar = ({ user, setSidebarOpen, containersList }) => {
   const [openCount, setOpenCount] = useState(0);
   const [container, setContainer] = useState(0);
   const [feature, setFeature] = useState(null);
@@ -30,21 +30,6 @@ const Sidebar = ({ user, setSidebarOpen }) => {
     setFeature(index);
   };
 
-  const containersList = [
-    {
-      name: "Users",
-    },
-    {
-      name: "Sales",
-    },
-    {
-      name: "Products",
-    },
-    {
-      name: "Departments",
-    },
-  ];
-
   const featuresList = [
     {
       name: "Workspace",
@@ -66,10 +51,10 @@ const Sidebar = ({ user, setSidebarOpen }) => {
 
   return (
     <div
-      className={`w-full py-8 bg-[#201E1E] justify-between h-full flex flex-col overflow-y-auto text-white px-4 ${openCount ? "sidebar-open" : "sidebar-closed"}`}
+      className={`w-[18rem] py-8 bg-[#201E1E] h-full flex flex-col overflow-y-auto text-white ${openCount ? "sidebar-open" : "sidebar-closed"}`}
     >
       {/* HEADING AND CLOSE BUTTON */}
-      <div className="flex w-full justify-between">
+      <div className="flex w-full justify-between px-4">
         {/* heading */}
         <h1 className="text-white font-semibold text-left text-3xl">
           DB Query App
@@ -81,8 +66,8 @@ const Sidebar = ({ user, setSidebarOpen }) => {
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="2rem"
-            height="2rem"
+            width="1.5rem"
+            height="1.5rem"
             viewBox="0 0 24 24"
             fill="#fff"
           >
@@ -111,7 +96,7 @@ const Sidebar = ({ user, setSidebarOpen }) => {
         </button>
       </div>
       {/* features list */}
-      <div className="flex flex-col w-full py-4">
+      <div className="flex flex-col w-full h-full py-12 pl-4">
         <div className="w-full flex flex-col gap-4">
           <h1 className="text-xl text-[#5D80C2] font-bold">Features</h1>
           {featuresList.map((c, index) => (
@@ -121,8 +106,8 @@ const Sidebar = ({ user, setSidebarOpen }) => {
               onClick={() => handleFeature(index)}
               className={`w-full ${
                 feature === index
-                  ? "text-[#252222] rounded-xl p-2 transition-all ease-in-out text-left text-md font-semibold bg-white "
-                  : "text-[#B0B0B0] rounded-xl p-2 transition-all ease-in-out text-left text-md font-semibold bg-transparent"
+                  ? "text-[#252222] p-2 transition-all ease-in-out text-left text-md font-semibold bg-white"
+                  : "text-[#B0B0B0] p-2 transition-all ease-in-out text-left text-md font-semibold bg-transparent"
               }`}
             >
               {c.name}
@@ -131,10 +116,10 @@ const Sidebar = ({ user, setSidebarOpen }) => {
         </div>
       </div>
       {/* Containers list */}
-      <div className="flex flex-col w-full py-4">
+      {/* <div className="flex flex-col w-full py-4">
         <div className="w-full flex flex-col gap-4">
           <h1 className="text-xl text-[#5D80C2] font-bold">Your Containers</h1>
-          {containersList.map((c, index) => (
+          {containersList?.map((c, index) => (
             <button
               onClick={() => handleContainer(index)}
               key={index}
@@ -146,10 +131,10 @@ const Sidebar = ({ user, setSidebarOpen }) => {
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
       {/* account name */}
       <a
-        className="items-center justify-center px-2 flex h-12 border-2 rounded-3xl border-[#B0B0B0] gap-2"
+        className="items-center mx-4 justify-center flex h-12 border-2 rounded-3xl border-[#B0B0B0] gap-2"
         href="/account"
       >
         <svg

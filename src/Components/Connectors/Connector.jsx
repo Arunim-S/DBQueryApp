@@ -37,15 +37,45 @@ const Connector = ({user}) => {
 
   return (
     <div className="flex flex-row w-full min-h-screen bg-black relative">
-      {sidebarVisible && (
+      {sidebarVisible ? (
         <div className="w-1/5">
-          <Sidebar user={user} />
+          <Sidebar user={user} setSidebarOpen={setSidebarVisible} />
         </div>
+        
+      ):(
+        <div className="p-8">
+            <button onClick={(e) => setSidebarVisible(true)}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="2rem"
+                height="2rem"
+                viewBox="0 0 24 24"
+                fill="#fff"
+              >
+                <path
+                  d="M4 18L20 18"
+                  stroke="#fff"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <path
+                  d="M4 12L20 12"
+                  stroke="#fff"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <path
+                  d="M4 6L20 6"
+                  stroke="#fff"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
       )}
       <div className={`flex ${sidebarVisible ? "w-4/5" : "w-full"}`}>
-        <button className="text-white p-4" onClick={handleToggleSidebar}>
-          {sidebarVisible ? "<" : ">"}
-        </button>
+        
         <div className="w-full flex h-full flex-col items-center justify-center py-12 relative px-8">
           {!showStep2 && (
             <h1 className="text-white text-3xl font-bold mb-8">

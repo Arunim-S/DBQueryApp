@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import "../../App.css";
 import Login from "../Login_Page/Login";
 import axios from 'axios';
+import fetchContainers from "../../fetchContainers";
+import fetchDatabase from "../../fetchDatabases";
+import {BallTriangle} from "react-loader-spinner" 
 const Dashboard = ({ instance, user, login, logout }) => {
   const [containers, setContainers] = useState([]);
   const [databases, setDatabases] = useState([]);
@@ -11,39 +14,18 @@ const Dashboard = ({ instance, user, login, logout }) => {
   const [deletedb, setDeleteDb] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-
-useEffect(() => {
-  const fetchContainers = async () => {
-    try {
-      // Get the name of the first database in the list
-      const databaseName = databases.length > 0 ? databases[selector].name : '';
-
-      // Call the API with the database name in the body
-      const response = await axios.get('http://localhost:3001/api/listcontainers', { name: databaseName });
-
-      // Assuming response.data is an array of containers
-      setContainers(response.data.containers);
-    } catch (error) {
-      console.error('Error fetching containers:', error);
-    }
-  };
-
-  fetchContainers();
-}, [databases, selector]);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    fetchContainers(databases, selector, setContainers);
+    setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+  }, [databases, selector]);
 
   useEffect(() => {
-    const fetchDatabase = async () => {
-      try {
-        const response = await axios.get('http://localhost:3001/api/databases');
-        setDatabases(response.data);
-      } catch (error) {
-        console.error('Error fetching containers:', error);
-      }
-    };
-
-    fetchDatabase();
+    setLoading(true);
+    fetchDatabase(setDatabases);
   }, []);
-
   const handleCreateDB = async () => {
     try {
       const response = await fetch('http://localhost:3001/api/createdb', {
@@ -90,17 +72,30 @@ useEffect(() => {
       // Handle error state
     }
   };
-
-
-
   return (
     <>
-      {user.name ? (
+    {loading && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <BallTriangle
+          height={100}
+          width={100}
+          radius={5}
+          color="#fff"
+          ariaLabel="ball-triangle-loading"
+          wrapperStyle={{}}
+          wrapperClass=""
+          visible={true}
+          />
+        </div>
+      )}
+      {user.name ?
+      <div className="w-full h-full relative">
         <div className="flex w-full h-screen">
           <div className="flex  flex-col w-[18rem] pt-8 pl-4 bg-[#201E1E] h-full justify-between overflow-y-auto">
             <div>
               <div className="flex w-full justify-between">
             <h1 className="text-white text-xl font-bold mb-8 pl-2">Databases</h1>
+            
             <p className="text-white pr-4">{databases.length}</p>
               </div>
             {databases?.map((e, index) => (
@@ -151,7 +146,7 @@ useEffect(() => {
                   Workspace
                 </h1>
                 <div className="grid grid-cols-2 gap-8 w-3/4 h-full p-8">
-                  <a className="" href=""><div className="w-full h-full bg-[#005AC9] text-white flex flex-col rounded-[1.5rem] shadow-md p-6 hover:scale-110 transition-all ease-in-out delay-100">
+                  <a className="" href=""><div className="w-full h-full hover:shadow-white bg-[#005AC9] text-white flex flex-col rounded-[1.5rem] shadow-lg p-6 hover:scale-110 transition-all ease-in-out delay-100">
                     <div className="flex w-full justify-between">
                     <h2 className="text-[2rem] font-bold">Containers</h2>
                     <p className="text-white text-xl">{containers.length}</p>
@@ -169,7 +164,7 @@ useEffect(() => {
                     </div>
                   </div></a>
 
-                  <a className="" href="/connector"><div className="w-full h-full bg-[#005AC9] text-white flex flex-col justify-between rounded-[1.5rem] shadow-md p-6 hover:scale-110 transition-all ease-in-out delay-100">
+                  <a className="" href="/connector"><div className="w-full h-full bg-[#005AC9] hover:shadow-white text-white flex flex-col justify-between rounded-[1.5rem] shadow-lg p-6 hover:scale-110 transition-all ease-in-out delay-100">
                     <h2 className="text-[2rem] font-bold">Connectors</h2>
                     <svg
                       width="10rem"
@@ -195,7 +190,7 @@ useEffect(() => {
                     </svg>
                   </div></a>
 
-                  <a className="" href="/chat"><div className="w-full h-full bg-[#005AC9] text-white flex flex-col justify-between rounded-[1.5rem] shadow-md p-6 hover:scale-110 transition-all ease-in-out delay-100">
+                  <a className="" href="/chat"><div className="w-full h-full bg-[#005AC9] hover:shadow-white text-white flex flex-col justify-between rounded-[1.5rem] shadow-lg p-6 hover:scale-110 transition-all ease-in-out delay-100">
                     <h2 className="text-[2rem] font-bold">Query Assistance</h2>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -223,7 +218,7 @@ useEffect(() => {
                     </svg>
                   </div></a>
 
-                  <a className="" href="/account"><div className="w-full h-full bg-[#005AC9] text-white flex flex-col justify-between rounded-[1.5rem] shadow-md p-6 hover:scale-110 transition-all ease-in-out delay-100">
+                  <a className="" href="/account"><div className="w-full h-full bg-[#005AC9] text-white flex flex-col justify-between rounded-[1.5rem] hover:hover:shadow-white shadow-lg p-6 hover:scale-110 transition-all ease-in-out delay-100">
                     <h2 className="text-[2rem] font-bold">Accounts</h2>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -241,9 +236,11 @@ useEffect(() => {
             </div>
           </div>
         </div>
-      ) : (<Login instance={instance} login={login}></Login>)
-      }
-    </>
+      </div>
+       : 
+      (<Login instance={instance} login={login}></Login>)
+    }
+      </>
   )
 };
 
