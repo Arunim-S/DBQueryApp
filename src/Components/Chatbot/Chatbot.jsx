@@ -315,7 +315,7 @@ const chatbot = ({ user }) => {
             </button>
           </div>
         )}
-        <div className="flex flex-col mx-auto w-4/5 chats-scroll pt-4">
+        <div className="flex flex-col mx-auto w-full chats-scroll pt-4">
           <div className="flex justify-center gap-4 p-4">
             <div className="gap-4 flex">
               <Dropdown options={databases} setSelector={setSelector} type={"Database"}></Dropdown>
@@ -395,7 +395,6 @@ const chatbot = ({ user }) => {
             </div>
           ) : (
             <div className="text-white text-center flex w-full h-full items-center justify-center">
-
               <SyncLoader color="#fff" />
             </div>
           )}
