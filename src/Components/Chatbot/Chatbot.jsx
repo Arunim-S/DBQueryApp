@@ -4,12 +4,14 @@ import axios from "axios";
 import { CosmosClient } from "@azure/cosmos";
 import UserData from "./user";
 import Message from "./message";
-import {ClipLoader, SyncLoader} from "react-spinners"
+import { ClipLoader, SyncLoader } from "react-spinners"
 import { LineWave } from "react-loader-spinner";
 import "../../App.css";
 import Dropdown from "../Dropdown/Dropdown";
 import fetchContainers from "../../fetchContainers";
 import fetchDatabase from "../../fetchDatabases";
+import { Client } from "langsmith/client";
+
 const chatbot = ({ user }) => {
   let [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
@@ -35,9 +37,8 @@ const chatbot = ({ user }) => {
     fetchDatabase(setDatabases);
   }, []);
 
-  databases?.map((e, index)=>{
-    if(e==selector)
-    {
+  databases?.map((e, index) => {
+    if (e == selector) {
       setSelector(index)
     }
   })
@@ -204,26 +205,17 @@ const chatbot = ({ user }) => {
     }, 2000);
   };
 
-  // useEffect(() => {
-  //   const handleResize = () => {
-  //     setSidebarOpen(window.innerWidth >= 700);
-  //   };
-
-  //   window.addEventListener("resize", handleResize);
-
-  //   // Cleanup
-  //   return () => {
-  //     window.removeEventListener("resize", handleResize);
-  //   };
-  // }, []);
-
-  console.log(containers)
+  const client = new Client({
+    apiUrl: "https://api.langchain.com",
+    apiKey: "ls__3ef32ca832884d959bc1f43ee0dc1dbd", 
+  });
+  console.log(client)
   return (
     <div className="flex flex-col h-screen bg-black">
       <div className="flex w-full h-full">
         {sidebarOpen ? (
           <div className="w-1/5">
-            <Sidebar user={user} setSidebarOpen={setSidebarOpen} containersList={containers}/>
+            <Sidebar user={user} setSidebarOpen={setSidebarOpen} containersList={containers} />
           </div>
         ) : (
           <div className="p-8">
@@ -337,12 +329,12 @@ const chatbot = ({ user }) => {
             </div>
           ) : (
             <div className="text-white text-center flex w-full h-full items-center justify-center">
-              
-<SyncLoader color="#fff" />
+
+              <SyncLoader color="#fff" />
             </div>
           )}
           <div className="w-3/4 mx-auto">
-            <div className="mx-auto flex items-center gap-2 p-8">
+            <div className="mx-auto flex items-center gap-2 p-4">
               <div className="relative flex-grow">
                 <textarea
                   type="text"
