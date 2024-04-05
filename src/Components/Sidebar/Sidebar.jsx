@@ -57,7 +57,7 @@ const Sidebar = ({ user, setSidebarOpen, containersList }) => {
       <div className="flex w-full justify-between px-4">
         {/* heading */}
         <h1 className="text-white font-semibold text-left text-3xl">
-          DB Query App
+          Text2NoSQL
         </h1>
         <button
           onClick={(e) => {

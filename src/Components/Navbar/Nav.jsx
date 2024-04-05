@@ -4,7 +4,7 @@ const Nav = ({ login }) => {
   return (
     <nav className="bg-[#363535] text-white py-8">
       <div className="container mx-auto flex justify-between items-center">
-        <div className="text-xl font-semibold">DB Query App</div>
+        <div className="text-xl font-semibold">Text2NoSQL</div>
         <ul className="flex gap-8 items-center justify-center">
           <li>
             <a href="#" className="hover:text-gray-300">
