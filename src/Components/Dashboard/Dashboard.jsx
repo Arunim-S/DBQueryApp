@@ -131,7 +131,6 @@ const Dashboard = ({ instance, user, login, logout }) => {
           }
 
           {showDelete ?
-
             <div className="py-8 flex flex-col pr-4 gap-4 fixed z-[100] top-0 left-0 w-full h-full items-center justify-center bg-opacity-50 bg-black">
               <div className="h-1/2 w-1/2 flex p-8 flex-col justify-between bg-gray-300 rounded-2xl">
                 <div className="flex w-full justify-between">

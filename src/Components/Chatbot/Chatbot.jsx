@@ -11,6 +11,12 @@ import Dropdown from "../Dropdown/Dropdown";
 import fetchContainers from "../../fetchContainers";
 import fetchDatabase from "../../fetchDatabases";
 import { Client } from "langsmith/client";
+// import { StringEvaluator } from "langsmith/evaluation";
+// import { Run, Example } from "langsmith";
+// import { EvaluationResult } from "langsmith/evaluation";
+// import { runOnDataset } from "langchain/smith";
+// const datasetName = "Rap Battle Dataset";
+
 
 const chatbot = ({ user }) => {
   let [sidebarOpen, setSidebarOpen] = useState(false);
@@ -207,9 +213,69 @@ const chatbot = ({ user }) => {
 
   const client = new Client({
     apiUrl: "https://api.langchain.com",
-    apiKey: "ls__3ef32ca832884d959bc1f43ee0dc1dbd", 
+    apiKey: "ls__3ef32ca832884d959bc1f43ee0dc1dbd",
   });
   console.log(client)
+
+// Define evaluators
+// const mustMention = async ({ run, example }) => {
+//   const mustMentionPhrases = example && example.outputs && example.outputs.must_contain ? example.outputs.must_contain : [];
+//   const runOutput = run && run.outputs ? run.outputs.output : '';
+//   const score = mustMentionPhrases.every(phrase =>
+//     runOutput.includes(phrase)
+//   );
+//   return {
+//     key: "must_mention",
+//     score: score,
+//   };
+// };
+
+// runOnDataset(
+//   predictResult, 
+//   datasetName,
+//   {
+//     evaluationConfig: {customEvaluators: [mustMention]}, 
+//     projectMetadata: {
+//       version: "1.0.0",
+//     },
+//   }
+// );
+
+
+  // function jaccardChars(output, answer) {
+  //   const predictionChars = new Set(output.trim().toLowerCase());
+  //   const answerChars = new Set(answer.trim().toLowerCase());
+  //   const intersection = [...predictionChars].filter(x => answerChars.has(x));
+  //   const union = new Set([...predictionChars, ...answerChars]);
+  //   return intersection.length / union.size;
+  // }
+  // async function grader(config) {
+  //   let value;
+  //   let score;
+  //   if (config.answer === null || config.answer === undefined) {
+  //     value = "AMBIGUOUS";
+  //     score = 0.5;
+  //   } else {
+  //     score = jaccardChars(config.prediction, config.answer);
+  //     value = score > 0.9 ? "CORRECT" : "INCORRECT";
+  //   }
+  //   return { score: score, value: value };
+  // }
+
+  // const evaluator = new StringEvaluator({
+  //   evaluationName: "Jaccard",
+  //   gradingFunction: grader,
+  // });
+
+  // const runs = client.listRuns({
+  //   projectName: "my_project",
+  //   executionOrder: 1,
+  //   error: false,
+  // });
+  // for (const run of runs) {
+  //   client.evaluateRun(run, evaluator);
+  // }
+
   return (
     <div className="flex flex-col h-screen bg-black">
       <div className="flex w-full h-full">
