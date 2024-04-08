@@ -2,13 +2,16 @@ import React, { useState } from "react";
 import Sidebar from "../Sidebar/Sidebar";
 import Step2 from "./Step2";
 import NextIcon from "../../row1_1_.png";
-
-const Connector = ({user}) => {
+import axios from "axios";
+const Connector = ({ user }) => {
   const [endpoint, setEndpoint] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const [databaseName, setDatabaseName] = useState(""); // New state for database name
+  const [containerName, setContainerName] = useState(""); // New state for container name
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [step1Completed, setStep1Completed] = useState(false);
   const [showStep2, setShowStep2] = useState(false);
+  const [schemaData, setSchemaData] = useState(null); // State to hold schema data
 
   const handleToggleSidebar = () => {
     setSidebarVisible(!sidebarVisible);
@@ -22,10 +25,49 @@ const Connector = ({user}) => {
     setApiKey(event.target.value);
   };
 
-  const handleStep1Submit = () => {
-    // validation
-    setStep1Completed(true);
-    setShowStep2(true);
+  const handleDatabaseNameChange = (event) => {
+    setDatabaseName(event.target.value);
+  };
+
+  const handleContainerNameChange = (event) => {
+    setContainerName(event.target.value);
+  };
+
+  const handleStep1Submit = async () => {
+    try {
+      console.log("hi")
+      if(endpoint && apiKey && databaseName && containerName)
+      {
+        const data = {
+          cosmos_db_url: endpoint,
+          cosmos_db_api_key: apiKey,
+          database_name: databaseName,
+          container_name: containerName
+        };
+  
+        const response = await axios.post(
+          'https://dbconnectionendpoint.azurewebsites.net/api/dbConnect?code=PAcpKKLG5dzJ22IngT9zwUZ2yaYICPCN75k0pK0MKlr0AzFu-4aNHQ==',
+          data
+        );
+  
+        console.log(response)
+        const schemaData = response.data;
+        console.log(schemaData)
+        if(schemaData)
+        {
+          setSchemaData(schemaData);
+          setStep1Completed(true);
+          setShowStep2(true);
+        }
+      }
+      else 
+      {
+        console.log("Please fill all values")
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      // Handle error, show error message, etc.
+    }
   };
 
   const handleStep2ButtonClick = () => {
@@ -41,41 +83,41 @@ const Connector = ({user}) => {
         <div className="w-1/5">
           <Sidebar user={user} setSidebarOpen={setSidebarVisible} />
         </div>
-        
-      ):(
+
+      ) : (
         <div className="p-8">
-            <button onClick={(e) => setSidebarVisible(true)}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="2rem"
-                height="2rem"
-                viewBox="0 0 24 24"
-                fill="#fff"
-              >
-                <path
-                  d="M4 18L20 18"
-                  stroke="#fff"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-                <path
-                  d="M4 12L20 12"
-                  stroke="#fff"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-                <path
-                  d="M4 6L20 6"
-                  stroke="#fff"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
-            </button>
-          </div>
+          <button onClick={(e) => setSidebarVisible(true)}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="2rem"
+              height="2rem"
+              viewBox="0 0 24 24"
+              fill="#fff"
+            >
+              <path
+                d="M4 18L20 18"
+                stroke="#fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M4 12L20 12"
+                stroke="#fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M4 6L20 6"
+                stroke="#fff"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+        </div>
       )}
       <div className={`flex ${sidebarVisible ? "w-4/5" : "w-full"}`}>
-        
+
         <div className="w-full flex h-full flex-col items-center justify-center py-12 relative px-8">
           {!showStep2 && (
             <h1 className="text-white text-3xl font-bold mb-8">
@@ -119,6 +161,34 @@ const Connector = ({user}) => {
                     required
                   />
                 </div>
+                <div className="mb-4">
+                  <label htmlFor="databaseName" className="block mb-2 text-white">
+                    Database Name
+                  </label>
+                  <input
+                    type="text"
+                    id="databaseName"
+                    className="form-input mt-1 block w-full rounded-lg p-3 outline-none"
+                    placeholder="Database Name"
+                    value={databaseName}
+                    onChange={handleDatabaseNameChange}
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="containerName" className="block mb-2 text-white">
+                    Container Name
+                  </label>
+                  <input
+                    type="text"
+                    id="containerName"
+                    className="form-input mt-1 block w-full rounded-lg p-3 outline-none"
+                    placeholder="Container Name"
+                    value={containerName}
+                    onChange={handleContainerNameChange}
+                    required
+                  />
+                </div>
               </div>
               <div className="absolute bottom-0 right-0 p-8 flex items-center justify-end">
                 <button
@@ -132,7 +202,7 @@ const Connector = ({user}) => {
             </div>
           )}
           {showStep2 && (
-            <Step2 onBack={handleStep2Back} />
+            <Step2 onBack={handleStep2Back} schemaData={schemaData} />
           )}
         </div>
       </div>

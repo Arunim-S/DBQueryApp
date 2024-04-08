@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import NextIcon from "../../row1_1_.png";
 import prettier from "prettier";
 
-const Step2 = ({ onBack }) => {
+const Step2 = ({ onBack, schemaData }) => {
   const [code, setCode] = useState(JSON.stringify({
     "firstName": "John",
     "lastName": "Doe",
@@ -21,6 +21,13 @@ const Step2 = ({ onBack }) => {
   const textAreaRef = useRef(null);
 
   useEffect(() => {
+    const jsonString = JSON.stringify(schemaData.schema, null, 2)
+    const trimmedJsonString = jsonString.trim();
+    // Parse the JSON string into an object
+    const jsonObject = JSON.parse(trimmedJsonString);
+    const formattedJson = JSON.stringify(jsonObject, null, 2);
+    console.log(formattedJson)
+    setCode(jsonObject)
     const handleResize = () => {
       const height = window.innerHeight > 768 ? "60vh" : "30vh";
       setEditorHeight(height);
@@ -49,14 +56,10 @@ const Step2 = ({ onBack }) => {
   };
 
   const formatCode = () => {
-    prettier
-      .format(code, { parser: "json" })
-      .then((formattedCode) => {
-        setCode(formattedCode);
-      })
-      .catch((error) => {
-        console.error("Error formatting code:", error);
-      });
+    const jsonObject = JSON.parse(code);
+    const formattedJson = JSON.stringify(x, null, 2);
+    console.log(formattedJson)
+    setCode(jsonObject)
   };
   
   
