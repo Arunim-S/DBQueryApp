@@ -18,30 +18,21 @@ import { Client } from "langsmith/client";
 // const datasetName = "Rap Battle Dataset";
 
 
-const chatbot = ({ user }) => {
+const chatbot = ({ user, container }) => {
   let [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [messageInput, setMessageInput] = useState("");
   const [containers, setContainers] = useState([]);
   const [databases, setDatabases] = useState([]);
-  const [selector, setSelector] = useState(0);
-  const [selectorC, setSelectorC] = useState(0);
+  const [selector, setSelector] = useState(databases[0]?.name);
+  const [selectorC, setSelectorC] = useState({});
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [loadingMessagesDelete, setLoadingMessagesDelete] = useState(false);
-  const connection_string =
-    "AccountEndpoint=https://testafschatdb.documents.azure.com:443/;AccountKey=tzam6UyAkfzzWCyzg4MQYVSjLt5C8J6fprjgeQNBk21T4cKzTusYIF9YBywPWhEGqKKTxBcbBck5ACDbV7X85g==;";
-  const clientCosmos = new CosmosClient(connection_string);
-  const container = clientCosmos.database("Testing_Purpose").container("test");
+  const [schema, setSchema] = useState({});
+ 
   const userName = user?.name;
-  useEffect(() => {
-    fetchContainers(databases, selector, setContainers);
-  }, [databases, selector]);
-
-  useEffect(() => {
-    fetchDatabase(setDatabases);
-  }, []);
 
   databases?.map((e, index) => {
     if (e == selector) {
@@ -49,6 +40,7 @@ const chatbot = ({ user }) => {
     }
   })
 
+console.log(schema)
   /**
    * Toggles the sidebar open/close.
    */
@@ -68,16 +60,19 @@ const chatbot = ({ user }) => {
           setChatHistory(e.chats);
           userExists = true;
           setUserData(e);
+          setDatabases(e.databases)
           // Exit the loop early since the user is found
           return;
         }
       });
 
+
       if (!userExists && userName) {
         const timestamp = new Date();
         const userId = generateRandomUserId();
         const chats = [];
-        const newUser = new UserData(userId, userName, chats, timestamp);
+        const databases_new = []
+        const newUser = new UserData(userId, userName, chats, timestamp, databases_new);
         await container.items.create(newUser);
         setChatHistory([]);
       }
@@ -87,6 +82,7 @@ const chatbot = ({ user }) => {
       setLoadingMessages(false);
     }
   };
+
 
   useEffect(() => {
     getMessagesFromCosmosDB();
@@ -211,35 +207,38 @@ const chatbot = ({ user }) => {
     }, 2000);
   };
 
+
   const client = new Client({
     apiUrl: "https://api.langchain.com",
     apiKey: "ls__3ef32ca832884d959bc1f43ee0dc1dbd",
   });
-  console.log(client)
 
-// Define evaluators
-// const mustMention = async ({ run, example }) => {
-//   const mustMentionPhrases = example && example.outputs && example.outputs.must_contain ? example.outputs.must_contain : [];
-//   const runOutput = run && run.outputs ? run.outputs.output : '';
-//   const score = mustMentionPhrases.every(phrase =>
-//     runOutput.includes(phrase)
-//   );
-//   return {
-//     key: "must_mention",
-//     score: score,
-//   };
-// };
 
-// runOnDataset(
-//   predictResult, 
-//   datasetName,
-//   {
-//     evaluationConfig: {customEvaluators: [mustMention]}, 
-//     projectMetadata: {
-//       version: "1.0.0",
-//     },
-//   }
-// );
+  // console.log(client)
+
+  // Define evaluators
+  // const mustMention = async ({ run, example }) => {
+  //   const mustMentionPhrases = example && example.outputs && example.outputs.must_contain ? example.outputs.must_contain : [];
+  //   const runOutput = run && run.outputs ? run.outputs.output : '';
+  //   const score = mustMentionPhrases.every(phrase =>
+  //     runOutput.includes(phrase)
+  //   );
+  //   return {
+  //     key: "must_mention",
+  //     score: score,
+  //   };
+  // };
+
+  // runOnDataset(
+  //   predictResult, 
+  //   datasetName,
+  //   {
+  //     evaluationConfig: {customEvaluators: [mustMention]}, 
+  //     projectMetadata: {
+  //       version: "1.0.0",
+  //     },
+  //   }
+  // );
 
 
   // function jaccardChars(output, answer) {
@@ -275,7 +274,6 @@ const chatbot = ({ user }) => {
   // for (const run of runs) {
   //   client.evaluateRun(run, evaluator);
   // }
-
   return (
     <div className="flex flex-col h-screen bg-black">
       <div className="flex w-full h-full">
@@ -318,11 +316,11 @@ const chatbot = ({ user }) => {
         <div className="flex flex-col mx-auto w-full chats-scroll pt-4">
           <div className="flex justify-center gap-4 p-4">
             <div className="gap-4 flex">
-              <Dropdown options={databases} setSelector={setSelector} type={"Database"}></Dropdown>
+              <Dropdown options={databases} setSelector={setSelector} type={"Database"} setContainers={setContainers}></Dropdown>
             </div>
 
             <div className="gap-4 flex">
-              <Dropdown options={containers} setSelector={setSelectorC} type={"Container"}></Dropdown>
+              <Dropdown options={containers} setSelector={setSelectorC} type={"Container"} setContainers={setSchema}></Dropdown>
             </div>
           </div>
 

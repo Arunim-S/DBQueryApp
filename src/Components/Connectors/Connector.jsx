@@ -3,7 +3,8 @@ import Sidebar from "../Sidebar/Sidebar";
 import Step2 from "./Step2";
 import NextIcon from "../../row1_1_.png";
 import axios from "axios";
-const Connector = ({ user }) => {
+
+const Connector = ({ user, container }) => {
   const [endpoint, setEndpoint] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [databaseName, setDatabaseName] = useState(""); // New state for database name
@@ -36,32 +37,29 @@ const Connector = ({ user }) => {
   const handleStep1Submit = async () => {
     try {
       console.log("hi")
-      if(endpoint && apiKey && databaseName && containerName)
-      {
+      if (endpoint && apiKey && databaseName && containerName) {
         const data = {
           cosmos_db_url: endpoint,
           cosmos_db_api_key: apiKey,
           database_name: databaseName,
           container_name: containerName
         };
-  
+
         const response = await axios.post(
           'https://dbconnectionendpoint.azurewebsites.net/api/dbConnect?code=PAcpKKLG5dzJ22IngT9zwUZ2yaYICPCN75k0pK0MKlr0AzFu-4aNHQ==',
           data
         );
-  
+
         console.log(response)
         const schemaData = response.data;
         console.log(schemaData)
-        if(schemaData)
-        {
+        if (schemaData) {
           setSchemaData(schemaData);
           setStep1Completed(true);
           setShowStep2(true);
         }
       }
-      else 
-      {
+      else {
         console.log("Please fill all values")
       }
     } catch (error) {
@@ -202,7 +200,7 @@ const Connector = ({ user }) => {
             </div>
           )}
           {showStep2 && (
-            <Step2 onBack={handleStep2Back} schemaData={schemaData} />
+            <Step2 onBack={handleStep2Back} schemaData={schemaData} database_name={databaseName} container_name={containerName} user={user} container={container}/>
           )}
         </div>
       </div>

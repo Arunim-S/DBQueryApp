@@ -25,22 +25,33 @@ const Login = ({ login, instance }) => {
  * @param {Object} e - The event object.
  */
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    // e.preventDefault();
     try {
-      console.log(instance)
-      const result = await instance.acquireTokenByUsernamePassword({
-        scopes: ['openid', 'profile', 'offline_access'],
-        email,
-        password,
+      console.log(email, password)
+      const response = await fetch("http://localhost:3001/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username: email, password: password }),
       });
 
-      // Handle successful authentication
-      console.log('Token acquired:', result);
+      if (response.ok) {
+        // Handle successful authentication
+        console.log("Login successful");
+        // Redirect or perform actions for successful login
+        localStorage.setItem("userName", email);
+        localStorage.setItem("isAuthenticated", "true");
+      } else {
+        // Handle authentication failure
+        console.error("Login failed:", response.statusText);
+        // Display error message to the user
+      }
     } catch (error) {
-      console.error('Login failed: ', error);
+      console.error("Login failed: ", error);
     }
   };
-
+  console.log(localStorage.getItem("isAuthenticated"))
   return (
     <div className="bg-black opacity-[88%] w-full min-h-screen">
       {/* <Nav /> */}
@@ -86,6 +97,7 @@ const Login = ({ login, instance }) => {
             <button
               type="submit"
               className="bg-[#005AC9] hover:bg-opacity-70 text-white font-semibold p-2 w-full rounded-[2rem]"
+              onClick={(e)=>{handleSubmit()}}
             >
               Get started
             </button>

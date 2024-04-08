@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import NextIcon from "../../row1_1_.png";
 import prettier from "prettier";
+import Database from "./database";
+import Containers from "./containers";
 
-const Step2 = ({ onBack, schemaData }) => {
+
+const Step2 = ({ onBack, schemaData, database_name, container_name, user, container }) => {
   const [code, setCode] = useState(JSON.stringify({
     "firstName": "John",
     "lastName": "Doe",
@@ -16,9 +19,43 @@ const Step2 = ({ onBack, schemaData }) => {
     "hobbies": ["reading", "gardening", "cooking"],
     "isActive": true
   }));
-  
+  const [userData, setUserData] = useState(null);
   const [editorHeight, setEditorHeight] = useState("60vh");
   const textAreaRef = useRef(null);
+  console.log(database_name, container_name)
+
+  async function updateDatabase(database_name, container_name, schema) {
+    const timestamp = new Date();
+    const newContainer = new Containers(container_name, schema, timestamp);
+    const { resources } = await container.items.readAll().fetchAll();
+    console.log(user)
+
+    resources.forEach((e) => {
+      if (e.userName === user?.name) {
+        setUserData(e);
+        return;
+      }
+    });
+    console.log(userData)
+    let database_found=false;
+    if(userData.databases.length>0)
+    {
+      for (const item of userData.databases) {
+        if (item.name === database_name) {
+          database_found=true;
+          item.containers.push(newContainer)
+          item.timestamp = timestamp;
+          break;
+        }
+      }
+    }
+    const newDatabase = new Database(database_name, [newContainer], timestamp);
+    if(database_found == false)
+    {
+      userData.databases.push(newDatabase);
+    }
+    await container.items.upsert(userData);
+  }
 
   useEffect(() => {
     const jsonString = JSON.stringify(schemaData.schema, null, 2)
@@ -61,12 +98,12 @@ const Step2 = ({ onBack, schemaData }) => {
     console.log(formattedJson)
     setCode(jsonObject)
   };
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
 
   return (
     <div className="bg-[rgb(12,44,84)] w-3/4 max-w-screen-lg gap-[1rem] h-full flex flex-col rounded-lg p-8 relative">
@@ -109,6 +146,7 @@ const Step2 = ({ onBack, schemaData }) => {
         </button>
         <button
           className="text-[#B0B0B0] flex gap-2 justify-end text-right font-bold rounded w-32"
+          onClick={(e) => { updateDatabase(database_name, container_name, code) }}
         >
           Submit Code
           <img src={NextIcon} width={23} alt="Next Icon" />

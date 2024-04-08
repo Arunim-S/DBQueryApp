@@ -14,6 +14,7 @@ import { PublicClientApplication } from "@azure/msal-browser";
 import Login from "./Components/Login_Page/Login";
 import Auth from "./Components/Login_Page/auth";
 import Account from "./Components/Account/Account";
+import { CosmosClient } from "@azure/cosmos";
 /**
  * Microsoft Authentication Configuration.
  * @typedef {Object} MsalConfig
@@ -31,8 +32,8 @@ const msalConfig = {
     clientId: "c5a73855-31a7-4bfa-a0db-4f7ddef05b49",
     authority:
       "https://login.microsoftonline.com/4d4343c6-067a-4794-91f3-5cb10073e5b4",
-    // redirectUri: "http://localhost:3000/",
-    redirectUri: "https://black-meadow-06ff0ea10.5.azurestaticapps.net/",
+    redirectUri: "http://localhost:3000/",
+    // redirectUri: "https://black-meadow-06ff0ea10.5.azurestaticapps.net/",
   },
 };
 
@@ -52,6 +53,10 @@ function App() {
   const [authenticated, setAuthenticated] = useState(
     localStorage.getItem("isAuthenticated") === "true"
   );
+  const connection_string =
+    "AccountEndpoint=https://testafschatdb.documents.azure.com:443/;AccountKey=tzam6UyAkfzzWCyzg4MQYVSjLt5C8J6fprjgeQNBk21T4cKzTusYIF9YBywPWhEGqKKTxBcbBck5ACDbV7X85g==;";
+  const clientCosmos = new CosmosClient(connection_string);
+  const container = clientCosmos.database("Testing_Purpose").container("test");
   let history = useNavigate();
   /**
    * Authentication hook.
@@ -85,20 +90,20 @@ function App() {
       <Route
         path="/chat"
         element={
-          authenticated ? <Chatbot user={user}/> : <Navigate to={"/"}></Navigate>
+          authenticated ? <Chatbot user={user} container={container}/> : <Navigate to={"/"}></Navigate>
         }
       />
       <Route
         path="/connector"
         element={
-          authenticated ? <Connector user={user}/> : <Navigate to={"/"}></Navigate>
+          authenticated ? <Connector user={user} container={container} /> : <Navigate to={"/"}></Navigate>
         }
       />
       <Route
         path="/account"
         element={
-          authenticated ? <Account user={user} logout={logout}/> : <Navigate to={"/"}></Navigate>
-        }/>
+          authenticated ? <Account user={user} logout={logout} /> : <Navigate to={"/"}></Navigate>
+        } />
       <Route
         path="/"
         element={<Dashboard instance={pca} user={user} login={login} logout={logout} />}
