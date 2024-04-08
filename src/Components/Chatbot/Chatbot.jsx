@@ -31,16 +31,16 @@ const chatbot = ({ user, container }) => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [loadingMessagesDelete, setLoadingMessagesDelete] = useState(false);
   const [schema, setSchema] = useState({});
- 
+  const [databaseName, setDatabaseName] = useState("");
+  const [containerName, setContainerName] = useState("");
   const userName = user?.name;
+
 
   databases?.map((e, index) => {
     if (e == selector) {
       setSelector(index)
     }
   })
-
-console.log(schema)
   /**
    * Toggles the sidebar open/close.
    */
@@ -106,7 +106,7 @@ console.log(schema)
   const addMessage = async (userName, answer, question, userData) => {
     try {
       const timestamp = new Date();
-      const newMessage = new Message(userName, question, answer, timestamp);
+      const newMessage = new Message(userName, question, answer, timestamp, databaseName, containerName);
 
       userData.chats.push(newMessage);
       // Update chat history state
@@ -125,6 +125,8 @@ console.log(schema)
   };
 
   const sendMessage = async () => {
+    if(databaseName !="" && containerName != "")
+    {
     setLoading(true);
     if (messageInput.trim() === "") return;
 
@@ -143,13 +145,19 @@ console.log(schema)
         "I am an intelligent digital assistant designed to provide accurate responses to your queries. Here are some of my capabilities:\n\n1. I can execute complex queries on the Azure Cosmos Database, such as retrieving the most recent questions from a specific email, listing distinct user names, or identifying unique personnas.\n\nIn essence, I am capable of providing quick, reliable, and detailed responses to your queries.",
     };
 
+    let prompt4 = {
+      role: "assistant",
+      content: `Use this schema ${schema} for the reference of the answering the queries regarding to the database`
+    }
+
     // Send message to endpoint
     let body = [];
     body.push(prompt1);
     body.push(prompt2);
     body.push(prompt3);
+    body.push(prompt4);
     body.push({ role: "user", content: messageInput.trim() });
-
+    console.log(body)
     let data = JSON.stringify(body);
     setMessageInput("");
     let config = {
@@ -177,6 +185,10 @@ console.log(schema)
     } catch (error) {
       console.log(error);
     }
+  }
+  else{
+    alert("Select Database and Container!");
+  }
   };
 
   function processText(inputString) {
@@ -316,14 +328,18 @@ console.log(schema)
         <div className="flex flex-col mx-auto w-full chats-scroll pt-4">
           <div className="flex justify-center gap-4 p-4">
             <div className="gap-4 flex">
-              <Dropdown options={databases} setSelector={setSelector} type={"Database"} setContainers={setContainers}></Dropdown>
+              <Dropdown options={databases} setSelector={setSelector} type={"Database"} setContainers={setContainers} setName={setDatabaseName}></Dropdown>
             </div>
 
             <div className="gap-4 flex">
-              <Dropdown options={containers} setSelector={setSelectorC} type={"Container"} setContainers={setSchema}></Dropdown>
+              <Dropdown options={containers} setSelector={setSelectorC} type={"Container"} setContainers={setSchema} setName={setContainerName}></Dropdown>
             </div>
           </div>
+        {(databases.length == 0)
+        &&
+        <p className="text-white text-center">You Don't have any databases connected. <br></br> Go to Connectors to add a database and container.</p>
 
+        }
           {!loadingMessages ? (
             <div className="flex flex-col h-full w-full overflow-y-auto gap-2 p-4">
               {chatHistory.map((message, index) => (

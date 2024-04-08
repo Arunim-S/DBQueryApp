@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 
-const Dropdown = ({ options, setSelector, type, setContainers }) => {
+const Dropdown = ({ options, setSelector, type, setContainers, setName }) => {
   const [selectedOption, setSelectedOption] = useState(null);
 
   const handleSelect = (option) => {
     console.log(option)
     setSelectedOption(option);
     setSelector(option);
+    setName(option)
     let cont = []
     options?.map((e) => {
       if (e.name == option) {
@@ -19,7 +20,7 @@ const Dropdown = ({ options, setSelector, type, setContainers }) => {
   };
   console.log(selectedOption)
   const handleSelectC = (option) => {
-    console.log(option)
+    setName(option)
     setSelectedOption(option);
     options?.map((e) => {
       if (e.name == option) {

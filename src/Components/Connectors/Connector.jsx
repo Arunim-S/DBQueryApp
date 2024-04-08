@@ -3,6 +3,7 @@ import Sidebar from "../Sidebar/Sidebar";
 import Step2 from "./Step2";
 import NextIcon from "../../row1_1_.png";
 import axios from "axios";
+import { ClipLoader, SyncLoader } from "react-spinners"
 
 const Connector = ({ user, container }) => {
   const [endpoint, setEndpoint] = useState("");
@@ -13,7 +14,7 @@ const Connector = ({ user, container }) => {
   const [step1Completed, setStep1Completed] = useState(false);
   const [showStep2, setShowStep2] = useState(false);
   const [schemaData, setSchemaData] = useState(null); // State to hold schema data
-
+  const [loading, setLoading] = useState(false);
   const handleToggleSidebar = () => {
     setSidebarVisible(!sidebarVisible);
   };
@@ -36,7 +37,7 @@ const Connector = ({ user, container }) => {
 
   const handleStep1Submit = async () => {
     try {
-      console.log("hi")
+      setLoading(true)
       if (endpoint && apiKey && databaseName && containerName) {
         const data = {
           cosmos_db_url: endpoint,
@@ -57,6 +58,7 @@ const Connector = ({ user, container }) => {
           setSchemaData(schemaData);
           setStep1Completed(true);
           setShowStep2(true);
+          setLoading(false)
         }
       }
       else {
@@ -189,13 +191,13 @@ const Connector = ({ user, container }) => {
                 </div>
               </div>
               <div className="absolute bottom-0 right-0 p-8 flex items-center justify-end">
-                <button
+                {loading?(<SyncLoader color="#fff"></SyncLoader>):<button
                   className="text-[#B0B0B0] flex gap-2 justify-end text-right font-bold rounded w-32"
                   onClick={handleStep1Submit}
                 >
                   Step 2
                   <img src={NextIcon} width={23} alt="Next Icon" />
-                </button>
+                </button>}
               </div>
             </div>
           )}

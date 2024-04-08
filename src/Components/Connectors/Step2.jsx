@@ -3,8 +3,8 @@ import NextIcon from "../../row1_1_.png";
 import prettier from "prettier";
 import Database from "./database";
 import Containers from "./containers";
-
-
+import { ClipLoader, SyncLoader } from "react-spinners"
+import { useNavigate } from "react-router-dom";
 const Step2 = ({ onBack, schemaData, database_name, container_name, user, container }) => {
   const [code, setCode] = useState(JSON.stringify({
     "firstName": "John",
@@ -22,39 +22,58 @@ const Step2 = ({ onBack, schemaData, database_name, container_name, user, contai
   const [userData, setUserData] = useState(null);
   const [editorHeight, setEditorHeight] = useState("60vh");
   const textAreaRef = useRef(null);
+  const [loading, setLoading] = useState(false);
+  const history = useNavigate();
   console.log(database_name, container_name)
 
   async function updateDatabase(database_name, container_name, schema) {
+    setLoading(true);
     const timestamp = new Date();
     const newContainer = new Containers(container_name, schema, timestamp);
-    const { resources } = await container.items.readAll().fetchAll();
-    console.log(user)
-
-    resources.forEach((e) => {
-      if (e.userName === user?.name) {
-        setUserData(e);
-        return;
-      }
-    });
-    console.log(userData)
-    let database_found=false;
-    if(userData.databases.length>0)
-    {
-      for (const item of userData.databases) {
-        if (item.name === database_name) {
-          database_found=true;
-          item.containers.push(newContainer)
-          item.timestamp = timestamp;
-          break;
+  
+    try {
+      const { resources } = await container.items.readAll().fetchAll(); // Wait for resources to be fetched
+  
+      console.log(user);
+      console.log(resources);
+  
+      let userDataCopy = { ...userData }; // Make a copy of userData to avoid mutating state directly
+  
+      resources.forEach((e) => {
+        if (e.userName === user?.name) {
+          userDataCopy = e; // Update userDataCopy
+        }
+      });
+  
+      let database_found = false;
+  
+      if (userDataCopy.databases.length > 0) {
+        for (const item of userDataCopy.databases) {
+          if (item.name === database_name) {
+            database_found = true;
+            item.containers.push(newContainer);
+            item.timestamp = timestamp;
+            break;
+          }
         }
       }
+  
+      const newDatabase = new Database(database_name, [newContainer], timestamp);
+  
+      if (!database_found) {
+        userDataCopy.databases.push(newDatabase);
+      }
+  
+      await container.items.upsert(userDataCopy);
+  
+      setLoading(false);
+  
+      history("/chat"); // Redirect to chat page
+    } catch (error) {
+      console.error("Error updating database:", error);
+      setLoading(false);
+      // Handle error as needed
     }
-    const newDatabase = new Database(database_name, [newContainer], timestamp);
-    if(database_found == false)
-    {
-      userData.databases.push(newDatabase);
-    }
-    await container.items.upsert(userData);
   }
 
   useEffect(() => {
@@ -144,13 +163,13 @@ const Step2 = ({ onBack, schemaData, database_name, container_name, user, contai
         >
           Back
         </button>
-        <button
+        {loading ? (<SyncLoader color="#fff"></SyncLoader>) : <button
           className="text-[#B0B0B0] flex gap-2 justify-end text-right font-bold rounded w-32"
           onClick={(e) => { updateDatabase(database_name, container_name, code) }}
         >
           Submit Code
           <img src={NextIcon} width={23} alt="Next Icon" />
-        </button>
+        </button>}
       </div>
     </div>
   );

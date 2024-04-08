@@ -15,6 +15,7 @@ import Login from "./Components/Login_Page/Login";
 import Auth from "./Components/Login_Page/auth";
 import Account from "./Components/Account/Account";
 import { CosmosClient } from "@azure/cosmos";
+import DatabaseInfoPage from "./Components/DatabaseInfo/Databaseinfo";
 /**
  * Microsoft Authentication Configuration.
  * @typedef {Object} MsalConfig
@@ -53,6 +54,7 @@ function App() {
   const [authenticated, setAuthenticated] = useState(
     localStorage.getItem("isAuthenticated") === "true"
   );
+
   const connection_string =
     "AccountEndpoint=https://testafschatdb.documents.azure.com:443/;AccountKey=tzam6UyAkfzzWCyzg4MQYVSjLt5C8J6fprjgeQNBk21T4cKzTusYIF9YBywPWhEGqKKTxBcbBck5ACDbV7X85g==;";
   const clientCosmos = new CosmosClient(connection_string);
@@ -81,6 +83,8 @@ function App() {
 
     checkAuthentication();
   }, []);
+
+
   /**
    * Render function for the main application component.
    * @returns {JSX.Element} The rendered component.
@@ -90,7 +94,7 @@ function App() {
       <Route
         path="/chat"
         element={
-          authenticated ? <Chatbot user={user} container={container}/> : <Navigate to={"/"}></Navigate>
+          authenticated ? <Chatbot user={user} container={container} /> : <Navigate to={"/"}></Navigate>
         }
       />
       <Route
@@ -106,7 +110,11 @@ function App() {
         } />
       <Route
         path="/"
-        element={<Dashboard instance={pca} user={user} login={login} logout={logout} />}
+        element={<Dashboard instance={pca} user={user} login={login} logout={logout} container={container} />}
+      />
+       <Route
+        path="/databaseinfo"
+        element={<DatabaseInfoPage user={user} container={container}/>}
       />
     </Routes>
   );
