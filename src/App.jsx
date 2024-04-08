@@ -33,8 +33,8 @@ const msalConfig = {
     clientId: "c5a73855-31a7-4bfa-a0db-4f7ddef05b49",
     authority:
       "https://login.microsoftonline.com/4d4343c6-067a-4794-91f3-5cb10073e5b4",
-    redirectUri: "http://localhost:3000/",
-    // redirectUri: "https://black-meadow-06ff0ea10.5.azurestaticapps.net/",
+    // redirectUri: "http://localhost:3000/",
+    redirectUri: "https://black-meadow-06ff0ea10.5.azurestaticapps.net/",
   },
 };
 
