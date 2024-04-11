@@ -16,6 +16,7 @@ import Auth from "./Components/Login_Page/auth";
 import Account from "./Components/Account/Account";
 import { CosmosClient } from "@azure/cosmos";
 import DatabaseInfoPage from "./Components/DatabaseInfo/Databaseinfo";
+import Analytics from "./Components/Analytics/Analytics";
 /**
  * Microsoft Authentication Configuration.
  * @typedef {Object} MsalConfig
@@ -33,8 +34,8 @@ const msalConfig = {
     clientId: "c5a73855-31a7-4bfa-a0db-4f7ddef05b49",
     authority:
       "https://login.microsoftonline.com/4d4343c6-067a-4794-91f3-5cb10073e5b4",
-    // redirectUri: "http://localhost:3000/",
-    redirectUri: "https://black-meadow-06ff0ea10.5.azurestaticapps.net/",
+    redirectUri: "http://localhost:3000/",
+    // redirectUri: "https://black-meadow-06ff0ea10.5.azurestaticapps.net/",
   },
 };
 
@@ -115,6 +116,10 @@ function App() {
        <Route
         path="/databaseinfo"
         element={<DatabaseInfoPage user={user} container={container}/>}
+      />
+      <Route
+        path="/analytics"
+        element={<Analytics user={user} container={container}/>}
       />
     </Routes>
   );

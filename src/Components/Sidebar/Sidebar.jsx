@@ -47,6 +47,14 @@ const Sidebar = ({ user, setSidebarOpen, containersList }) => {
       name: "Account",
       route: "/account",
     },
+    {
+      name: "Database Info",
+      route: "/databaseinfo"
+    },
+    {
+      name: "Analytics",
+      route: "/analytics"
+    }
   ];
 
   return (

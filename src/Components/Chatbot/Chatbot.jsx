@@ -11,6 +11,8 @@ import Dropdown from "../Dropdown/Dropdown";
 import fetchContainers from "../../fetchContainers";
 import fetchDatabase from "../../fetchDatabases";
 import { Client } from "langsmith/client";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 // import { StringEvaluator } from "langsmith/evaluation";
 // import { Run, Example } from "langsmith";
 // import { EvaluationResult } from "langsmith/evaluation";
@@ -47,6 +49,7 @@ const chatbot = ({ user, container }) => {
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
+  const notify = () => toast("Please select database and container to ask a query!");
   /**
    * Retrieves messages from Cosmos DB and updates the corresponding states.
    */
@@ -125,70 +128,70 @@ const chatbot = ({ user, container }) => {
   };
 
   const sendMessage = async () => {
-    if(databaseName !="" && containerName != "")
-    {
-    setLoading(true);
-    if (messageInput.trim() === "") return;
+    if (databaseName != "" && containerName != "") {
+      setLoading(true);
+      if (messageInput.trim() === "") return;
 
-    let prompt1 = {
-      role: "system",
-      content:
-        'You are a helpful assistant that provides answers to user\'s queries. When a user asks a question, follow these steps:\n\n1. First, try to generate a response based on the context of your chat history with the user. If you are unable to generate a satisfactory response, then proceed to the next step.\n\n2. Search the Azure Cosmos Database using the execute_query function. You have direct access to the database through this function.\n\nThe Azure Cosmos Database has the following schema:\njson\n{\n    "id": "string",\n    "email": "string",\n    "timestamp": "\'mm/dd/yyyy\' (string ex:\'12/01/2023\')",\n    "questions": [\n        {\n            "userName": "string",\n            "questionType": "string",\n            "userQuestion": "string",\n            "persona": "string"\n        }\n    ]\n}  \n\n\nYou can execute queries such as:\n- "SELECT TOP {top_results} q.userQuestion FROM c JOIN q IN c.questions WHERE c.email = \'{email}\' ORDER BY c.timestamp DESC"\n- "SELECT DISTINCT VALUE q.userName FROM c JOIN q IN c.questions"\n- "SELECT DISTINCT VALUE q.personna FROM c JOIN q IN c.questions", etc.\n\nUse the results from the `execute_query` function to generate a final response to the user\'s query.',
-    };
-    let prompt2 = {
-      role: "user",
-      content: "Who are you and what are your capabilities?",
-    };
-    let prompt3 = {
-      role: "assistant",
-      content:
-        "I am an intelligent digital assistant designed to provide accurate responses to your queries. Here are some of my capabilities:\n\n1. I can execute complex queries on the Azure Cosmos Database, such as retrieving the most recent questions from a specific email, listing distinct user names, or identifying unique personnas.\n\nIn essence, I am capable of providing quick, reliable, and detailed responses to your queries.",
-    };
+      let prompt1 = {
+        role: "system",
+        content:
+          'You are a helpful assistant that provides answers to user\'s queries. When a user asks a question, follow these steps:\n\n1. First, try to generate a response based on the context of your chat history with the user. If you are unable to generate a satisfactory response, then proceed to the next step.\n\n2. Search the Azure Cosmos Database using the execute_query function. You have direct access to the database through this function.\n\nThe Azure Cosmos Database has the following schema:\njson\n{\n    "id": "string",\n    "email": "string",\n    "timestamp": "\'mm/dd/yyyy\' (string ex:\'12/01/2023\')",\n    "questions": [\n        {\n            "userName": "string",\n            "questionType": "string",\n            "userQuestion": "string",\n            "persona": "string"\n        }\n    ]\n}  \n\n\nYou can execute queries such as:\n- "SELECT TOP {top_results} q.userQuestion FROM c JOIN q IN c.questions WHERE c.email = \'{email}\' ORDER BY c.timestamp DESC"\n- "SELECT DISTINCT VALUE q.userName FROM c JOIN q IN c.questions"\n- "SELECT DISTINCT VALUE q.personna FROM c JOIN q IN c.questions", etc.\n\nUse the results from the `execute_query` function to generate a final response to the user\'s query.',
+      };
+      let prompt2 = {
+        role: "user",
+        content: "Who are you and what are your capabilities?",
+      };
+      let prompt3 = {
+        role: "assistant",
+        content:
+          "I am an intelligent digital assistant designed to provide accurate responses to your queries. Here are some of my capabilities:\n\n1. I can execute complex queries on the Azure Cosmos Database, such as retrieving the most recent questions from a specific email, listing distinct user names, or identifying unique personnas.\n\nIn essence, I am capable of providing quick, reliable, and detailed responses to your queries.",
+      };
 
-    let prompt4 = {
-      role: "assistant",
-      content: `Use this schema ${schema} for the reference of the answering the queries regarding to the database`
+      let prompt4 = {
+        role: "assistant",
+        content: `Use this schema ${schema} for the reference of the answering the queries regarding to the database`
+      }
+
+      // Send message to endpoint
+      let body = [];
+      body.push(prompt1);
+      body.push(prompt2);
+      body.push(prompt3);
+      body.push(prompt4);
+      body.push({ role: "user", content: messageInput.trim() });
+      console.log(body)
+      let data = JSON.stringify(body);
+      setMessageInput("");
+      let config = {
+        method: "post",
+        maxBodyLength: Infinity,
+        url: "https://db-query.azurewebsites.net",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+
+      try {
+        const response = await axios.request(config);
+
+        // Append assistant's response to chat history
+
+        // Update Cosmos DB with user's message
+        await addMessage(
+          "user",
+          response.data.content,
+          messageInput.trim(),
+          userData
+        );
+      } catch (error) {
+        console.log(error);
+      }
     }
-
-    // Send message to endpoint
-    let body = [];
-    body.push(prompt1);
-    body.push(prompt2);
-    body.push(prompt3);
-    body.push(prompt4);
-    body.push({ role: "user", content: messageInput.trim() });
-    console.log(body)
-    let data = JSON.stringify(body);
-    setMessageInput("");
-    let config = {
-      method: "post",
-      maxBodyLength: Infinity,
-      url: "https://db-query.azurewebsites.net",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-
-    try {
-      const response = await axios.request(config);
-
-      // Append assistant's response to chat history
-
-      // Update Cosmos DB with user's message
-      await addMessage(
-        "user",
-        response.data.content,
-        messageInput.trim(),
-        userData
-      );
-    } catch (error) {
-      console.log(error);
+    else {
+      console.log("hi")
+      notify();
     }
-  }
-  else{
-    alert("Select Database and Container!");
-  }
   };
 
   function processText(inputString) {
@@ -295,6 +298,15 @@ const chatbot = ({ user, container }) => {
           </div>
         ) : (
           <div className="p-8">
+            <ToastContainer position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover />
             <button onClick={(e) => setSidebarOpen(true)}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -335,11 +347,11 @@ const chatbot = ({ user, container }) => {
               <Dropdown options={containers} setSelector={setSelectorC} type={"Container"} setContainers={setSchema} setName={setContainerName}></Dropdown>
             </div>
           </div>
-        {(databases.length == 0)
-        &&
-        <p className="text-white text-center">You Don't have any databases connected. <br></br> Go to Connectors to add a database and container.</p>
+          {(databases.length == 0)
+            &&
+            <p className="text-white text-center">You Don't have any databases connected. <br></br> Go to Connectors to add a database and container.</p>
 
-        }
+          }
           {!loadingMessages ? (
             <div className="flex flex-col h-full w-full overflow-y-auto gap-2 p-4">
               {chatHistory.map((message, index) => (
